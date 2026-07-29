@@ -9,8 +9,13 @@ const morgan = require("morgan");
 
 const pool = require("./database/db");
 
+const notFoundMiddleware = require("./middleware/notFoundMiddleware");
+const errorMiddleware = require("./middleware/errorMiddleware");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+
 
 // =========================
 // SECURITY MIDDLEWARE
@@ -18,19 +23,18 @@ const PORT = process.env.PORT || 5000;
 app.use(helmet());
 app.use(cors());
 
-
 const limiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
+    windowMs = 15 * 60 * 1000,
     max: 100,
-    message: {
+    message: {  
         success: false,
-        message: "Too many requests. Please try again later."
+        message: "Too many request. Please try again later"
     }
 });
 
 app.use(limiter);
-
 app.use(morgan("dev"));
+
 // =========================
 // BODY PARSING
 // =========================
@@ -56,15 +60,18 @@ app.get("/", (req, res) => {
     try{
         const connection = await pool.getConnection();
 
-        console.log("Databases connected");
+        console.log("Database connected");
 
         connection.release();
-    }catch (error) {
-        console.error("Failed to connect to database");
+    }catch(error){
+        console.error("Failed to connect to the database");
         console.error(error.message);
         process.exit(1);
     }
 })();
+
+app.use(notFoundMiddleware);
+app.use(errorMiddleware)
 
 // =========================
 // START SERVER
