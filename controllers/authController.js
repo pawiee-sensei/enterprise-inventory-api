@@ -19,4 +19,11 @@ const login = asyncHandler(async(req, res) =>{
     res.status(200).json(result);
 });
 
-module.exports = {register, login};
+const profile = asyncHandler(async(req, res) => {
+    res.status(200).json({
+        success: true,
+        user: req.user
+    });
+});
+
+module.exports = {register, login, profile};
