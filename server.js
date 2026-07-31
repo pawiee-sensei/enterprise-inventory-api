@@ -12,6 +12,8 @@ const pool = require("./database/db");
 const notFoundMiddleware = require("./middleware/notFoundMiddleware");
 const errorMiddleware = require("./middleware/errorMiddleware");
 
+const authRoutes = require("./routes/authRoutes");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -24,7 +26,7 @@ app.use(helmet());
 app.use(cors());
 
 const limiter = rateLimit({
-    windowMs = 15 * 60 * 1000,
+    windowMs: 15 * 60 * 1000,
     max: 100,
     message: {  
         success: false,
@@ -69,6 +71,8 @@ app.get("/", (req, res) => {
         process.exit(1);
     }
 })();
+
+app.use("/api/auth", authRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware)
