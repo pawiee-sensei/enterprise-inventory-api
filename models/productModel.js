@@ -20,6 +20,7 @@
                 ON p.category_id = c.id
             INNER JOIN suppliers s
                 ON p.supplier_id = s.id
+            WITH p.is_active = 1
             ORDER BY p.id DESC
             `
         );
@@ -47,7 +48,8 @@
                 ON p.category_id = c.id
             INNER JOIN suppliers s
                 ON p.supplier_id = s.id
-            WHERE p.id = ?;
+            WHERE p.id = ?
+            AND p.is_active = 1
             `,
             [id]
         );
@@ -183,6 +185,19 @@ const updateProduct = async (id, productData) => {
     return result.affectedRows > 0;
 };
 
+const deleteProduct = async (id) => {
+    const [result] = await pool.execute(
+        `
+        UPDATE products
+        SET is_active = 0
+        WHERE id = ?
+        `,
+        [id]
+    );
+
+    return result.affectedRows;
+};
+
     module.exports = {
         findAllProducts,
         findProductById,
@@ -190,5 +205,6 @@ const updateProduct = async (id, productData) => {
         createProduct,
         findCategoryById,
         findSupplierById,
-        updateProduct
+        updateProduct,
+        deleteProduct
     };

@@ -6,6 +6,7 @@ const {
     findCategoryById,
     findSupplierById,
     updateProduct,
+    deleteProduct
 } = require('../models/productModel');
 
 const createProductService = async (productData) => {
@@ -129,9 +130,24 @@ const updateProductService = async (id, productData) => {
 
 };
 
+const deleteProductService = async (id) => {
+    // Validate if product exists
+    const product = await findProductById(id);
+
+    if(!product){
+        throw new Error("Product not found");
+    }
+
+    // Delete the product
+    await deleteProduct(id);
+
+    return;
+};
+
 module.exports = {
     createProductService,
     getAllProductsService,
     getProductByIdService,
-    updateProductService
+    updateProductService,
+    deleteProductService
 };

@@ -4,6 +4,7 @@ const {
     getAllProductsService,
     getProductByIdService,
     updateProductService,
+    deleteProductService,
 } = require("../services/productService");
 
 const createProduct = asyncHandler(async(req, res) => {
@@ -56,9 +57,19 @@ const updateProduct = asyncHandler(async(req, res) => {
     });
 });
 
+const deleteProduct = asyncHandler(async(req, res) => {
+    await deleteProductService(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        message: "Product deleted successfully"
+    });
+});
+
 module.exports = {
     createProduct,
     getAllProducts,
     getProductById,
-    updateProduct
+    updateProduct,
+    deleteProduct
 };
