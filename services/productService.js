@@ -51,4 +51,13 @@ const createProductService = async (productData) => {
     };
 };
 
-module.exports = { createProductService };
+const getAllProductsService = async () => {
+    const products = await findAllProducts();
+
+    return products;
+};
+
+module.exports = {
+    createProductService,
+    getAllProductsService
+};

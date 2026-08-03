@@ -2,7 +2,8 @@ const express = require("express");
 
 // Imports controllers
 const {
-    createProduct
+    createProduct,
+    getAllProducts,
 } = require("../controllers/productController");
 
 // Imports middleware
@@ -13,5 +14,6 @@ const router = express.Router();
 
 // Product routes
 router.post("/",authMiddleware,authorize(1), createProduct);
+router.get("/", authMiddleware, authorize(1,2), getAllProducts);
 
 module.exports = router;

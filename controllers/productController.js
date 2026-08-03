@@ -1,6 +1,7 @@
 const asyncHandler = require("../utils/asyncHandler");
 const {
-    createProductService
+    createProductService,
+    getAllProductsService
 } = require("../services/productService");
 
 const createProduct = asyncHandler(async(req, res) => {
@@ -14,6 +15,17 @@ const createProduct = asyncHandler(async(req, res) => {
 
 });
 
+const getAllProducts = asyncHandler(async(req, res) => {
+    const products = await getAllProductsService();
+
+    res.status(200).json({
+        success: true,
+        count: products.length,
+        data: products
+    })
+})
+
 module.exports = {
-    createProduct
+    createProduct,
+    getAllProducts
 };
