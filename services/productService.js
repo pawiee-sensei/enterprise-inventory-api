@@ -57,7 +57,18 @@ const getAllProductsService = async () => {
     return products;
 };
 
+const getProductByIdService = async (id) => {
+    const product = await findProductById(id);
+
+    if(!product){
+        throw new Error("Product not found");
+    }
+
+    return product;
+}
+
 module.exports = {
     createProductService,
-    getAllProductsService
+    getAllProductsService,
+    getProductByIdService
 };
