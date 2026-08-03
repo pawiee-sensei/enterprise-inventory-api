@@ -2,7 +2,8 @@ const asyncHandler = require("../utils/asyncHandler");
 const {
     createProductService,
     getAllProductsService,
-    getProductByIdService
+    getProductByIdService,
+    updateProductService,
 } = require("../services/productService");
 
 const createProduct = asyncHandler(async(req, res) => {
@@ -40,8 +41,24 @@ const getProductById = asyncHandler(async(req, res) => {
     })
 })
 
+const updateProduct = asyncHandler(async(req, res) => {
+    const product = await updateProductService(req.params.id, req.body);
+
+    if(!product){
+        res.status(404);
+        throw new Error("Product not found");
+    }
+
+    res.status(200).json({
+        success: true,
+        message: "Product updated successfully",
+        data: product
+    });
+});
+
 module.exports = {
     createProduct,
     getAllProducts,
-    getProductById
+    getProductById,
+    updateProduct
 };

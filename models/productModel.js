@@ -135,11 +135,60 @@ const findSupplierById = async (id) => {
     return rows[0];
 };
 
+const updateProduct = async (id, productData) => {
+    const {
+        sku,
+        name,
+        description,
+        cost_price,
+        selling_price,
+        stock,
+        minimum_stock,
+        category_id,
+        supplier_id,
+        is_active
+    } = productData;
+
+    const [result] = await pool.execute(
+        `
+        UPDATE products
+        SET
+            sku = ?,
+            name = ?,
+            description = ?,
+            cost_price = ?,
+            selling_price = ?,
+            stock = ?,
+            minimum_stock = ?,
+            category_id = ?,
+            supplier_id = ?,
+            is_active = ?
+        WHERE id = ?
+        `,
+        [
+            sku,
+            name,
+            description,
+            cost_price,
+            selling_price,
+            stock,
+            minimum_stock,
+            category_id,
+            supplier_id,
+            is_active,
+            id
+        ]
+    );
+
+    return result.affectedRows > 0;
+};
+
     module.exports = {
         findAllProducts,
         findProductById,
         findProductBySku,
         createProduct,
         findCategoryById,
-        findSupplierById
+        findSupplierById,
+        updateProduct
     };
