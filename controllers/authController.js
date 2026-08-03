@@ -26,4 +26,12 @@ const profile = asyncHandler(async(req, res) => {
     });
 });
 
-module.exports = {register, login, profile};
+const adminDashboard = asyncHandler(async(req, res) => {
+    res.status(200).json({
+        success: true,
+        message: "Welcome admin!",
+        user: req.user
+    });
+}); 
+
+module.exports = {register, login, profile, adminDashboard};
