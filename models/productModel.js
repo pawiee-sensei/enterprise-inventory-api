@@ -20,7 +20,7 @@
                 ON p.category_id = c.id
             INNER JOIN suppliers s
                 ON p.supplier_id = s.id
-            WITH p.is_active = 1
+            WHERE p.is_active = 1
             ORDER BY p.id DESC
             `
         );

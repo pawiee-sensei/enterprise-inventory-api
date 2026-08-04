@@ -8,24 +8,25 @@ const {
     updateProduct,
     deleteProduct
 } = require('../models/productModel');
+const AppError = require('../utils/AppError');
 
 const createProductService = async (productData) => {
     const existingProduct = await findProductBySku(productData.sku);
 
     if(existingProduct){
-        throw new Error("Product with this SKU already exists");
+        throw new AppError("Product with this SKU already exists", 409);
     };
 
     const category = await findCategoryById(productData.category_id);
 
     if(!category){
-        throw new Error("Category not found");
+        throw new AppError("Category not found", 404);
     };
 
     const supplier = await findSupplierById(productData.supplier_id);
 
     if(!supplier){
-        throw new Error("Supplier not found");
+        throw new AppError("Supplier not found", 404);
     };
 
 
@@ -48,7 +49,7 @@ const getProductByIdService = async (id) => {
     const product = await findProductById(id);
 
     if(!product){
-        throw new Error("Product not found");
+        throw new AppError("Product not found", 404);
     }
 
     return product;
@@ -60,28 +61,28 @@ const updateProductService = async (id, productData) => {
     const product = await findProductById(id);
 
     if(!product){
-        throw new Error("Product not found");
+        throw new AppError("Product not found", 404);
     }
 
     // Validate if product with same SKU exists
     const existingSku = await findProductBySku(productData.sku);
 
     if(existingSku && existingSku.id !== Number(id)) {
-        throw new Error("Product with this SKU already exists");
+        throw new AppError("Product with this SKU already exists", 409);
     }
 
     // Validate if category exists
     const category = await findCategoryById(productData.category_id);
 
     if(!category){
-        throw new Error("Category not found");
+        throw new AppError("Category not found", 404);
     }
 
     // Validate if supplier exists
     const supplier = await findSupplierById(productData.supplier_id);
 
     if(!supplier){
-        throw new Error("Supplier not found");
+        throw new AppError("Supplier not found", 404);
     }
 
     // Update the product
@@ -100,7 +101,7 @@ const deleteProductService = async (id) => {
     const product = await findProductById(id);
 
     if(!product){
-        throw new Error("Product not found");
+        throw new AppError("Product not found", 404);
     }
 
     // Delete the product
