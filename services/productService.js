@@ -28,21 +28,6 @@ const createProductService = async (productData) => {
         throw new Error("Supplier not found");
     };
 
-    if(productData.cost_price < 0){
-        throw new Error("Cost price cannot be negative");
-    }
-
-    if(productData.selling_price < 0){
-        throw new Error("Selling price cannot be negative");
-    }
-
-    if(productData.stock < 0){
-        throw new Error("Stock cannot be negative");
-    }
-
-    if(productData.minimum_stock < 0){
-        throw new Error("Minimum stock cannot be negative");
-    }
 
     const productId = await createProduct(productData);
 
@@ -97,26 +82,6 @@ const updateProductService = async (id, productData) => {
 
     if(!supplier){
         throw new Error("Supplier not found");
-    }
-
-    // Validate if cost price is not negative
-    if(productData.cost_price < 0){
-        throw new Error("Cost price cannot be negative");
-    }
-
-    // Validate if selling price is not negative
-    if(productData.selling_price < 0){
-        throw new Error("Selling price cannot be negative");
-    }
-
-    // Validate if stock is not negative
-    if(productData.stock < 0){
-        throw new Error("Stock cannot be negative");
-    }
-
-    // Validate if minimum stock is not negative
-    if(productData.minimum_stock < 0){
-        throw new Error("Minimum stock cannot be negative");
     }
 
     // Update the product
