@@ -13,13 +13,17 @@ const validateProduct = [
     body("name")
         .notEmpty()
         //if name is empty, return an error message
-        .withMessage("Name is required"),
+        .withMessage("Name is required")
+        .bail()
+        .isLength({ min: 2, max: 100 })
+        .withMessage("Name must be between 2 and 100 characters"),
 
     //Cost Price
     body("cost_price")
         .notEmpty()
         //if cost price is empty, return an error message
         .withMessage("Cost price is required")
+        .bail()
         .isFloat({ min: 0 })
         //if cost price is not a positive number, return an error message
         .withMessage("Cost price must be a positive number"),
@@ -29,6 +33,7 @@ const validateProduct = [
         .notEmpty()
         //if selling price is empty, return an error message
         .withMessage("Selling price is required")
+        .bail()
         .isFloat({ min: 0 })
         //if selling price is not a positive number, return an error message
         .withMessage("Selling price must be a positive number"),
@@ -38,6 +43,7 @@ const validateProduct = [
         .notEmpty()
         //if stock is empty, return an error message
         .withMessage("Stock is required")
+        .bail()
         .isInt({ min: 0 })
         //if stock is not a non-negative integer, return an error message
         .withMessage("Stock must be a non-negative integer"),
@@ -47,6 +53,7 @@ const validateProduct = [
         .notEmpty()
         //if minimum stock is empty, return an error message
         .withMessage("Minimum stock is required")
+        .bail()
         .isInt({ min: 0 })
         //if minimum stock is not a non-negative integer, return an error message
         .withMessage("Minimum stock must be a non-negative integer"),
@@ -56,6 +63,7 @@ const validateProduct = [
         .notEmpty()
         //if category id is empty, return an error message
         .withMessage("Category is required")
+        .bail()
         .isInt({ min: 1 })
         //if category id is not a positive integer, return an error message
         .withMessage("Category ID must be a positive integer"),
@@ -65,6 +73,7 @@ const validateProduct = [
         .notEmpty()
         //if supplier id is empty, return an error message
         .withMessage("Supplier is required")
+        .bail()
         .isInt({ min: 1 })
         //if supplier id is not a positive integer, return an error message
         .withMessage("Supplier ID must be a positive integer"),
