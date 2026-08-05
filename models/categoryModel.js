@@ -25,6 +25,7 @@ const pool = require("../database/db");
                 description
             FROM categories
             WHERE id = ?
+            AND is_active = 1
             `,
             [id]
         );
@@ -38,6 +39,7 @@ const pool = require("../database/db");
             SELECT *
             FROM categories
             WHERE name = ?
+            AND is_active = 1
             `,
             [name]
         );
@@ -65,10 +67,25 @@ const pool = require("../database/db");
         return result.insertId;
     };
 
+const deleteCategory = async (id) => {
+
+    const [result] = await pool.execute(
+        `
+        UPDATE categories
+        SET is_active = 0
+        WHERE id = ?
+        `,
+        [id]
+    );
+
+    return result.affectedRows;
+};
+
 
 module.exports = {
     findAllCategories,
     findCategoryById,
     findCategoryByName,
-    createCategory
+    createCategory,
+    deleteCategory
 };
