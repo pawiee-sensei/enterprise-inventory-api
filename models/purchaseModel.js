@@ -46,7 +46,9 @@ const findPurchaseById = async (id) => {
 //Operation transaction
 const createPurchase = async(
     connection,
+    //from table purchases
     supplierId,
+    //from table users
     userId
 ) => {
     const [result] = await connection.execute(
@@ -63,15 +65,18 @@ const createPurchase = async(
 
 const createPurchaseItem = async(
     connection,
+    //from table purchases
     purchaseId,
+    //array of purchase items
     item
 ) => {
 
     //Get the unit_cost from the product
     const subtotal = item.quantity * item.unit_cost;
 
+    //Insert the purchase item
     await connection.execute(
-        `INSERT INTO purchase_items(
+        `INSERT INTO purchase_items(    
             purchase_id,
             product_id,
             quantity,
@@ -93,7 +98,9 @@ const createPurchaseItem = async(
 
 const updatePurchaseTotal = async (
     connection,
+    //from table purchases
     purchaseId,
+    //calculated from table purchase_items
     totalAmount
 ) => {
 
