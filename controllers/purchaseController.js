@@ -1,6 +1,11 @@
 const asyncHandler = require("../utils/asyncHandler");
 
-const {createPurchaseService} = require("../services/purchaseService");
+const {
+    createPurchaseService,
+    getAllPurchasesService,
+    getPurchaseByIdService
+} = require("../services/purchaseService");
+const { get } = require("../routes/productRoutes");
 
 const createPurchase = asyncHandler(async(req, res) => {
     const purchase =  await createPurchaseService(req.body, req.user.id);
@@ -12,5 +17,29 @@ const createPurchase = asyncHandler(async(req, res) => {
     });
 });
 
+const getAllPurchases = asyncHandler(async(req, res) => {
+    const purchases = await getAllPurchasesService();
 
-module.exports = {createPurchase,};
+    res.status(200).json({
+        success: true,
+        count: purchases.length,
+        data: purchases
+    })
+});
+
+const getPurchaseById = asyncHandler(async(req, res) => {
+    const purchase = await getPurchaseByIdService(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        data: purchase
+        
+    });
+});
+
+
+module.exports = {
+    createPurchase,
+    getAllPurchases,
+    getPurchaseById
+};

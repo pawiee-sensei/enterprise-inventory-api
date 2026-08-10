@@ -2,7 +2,10 @@
 
     const {
         createPurchase,
-        createPurchaseItem
+        createPurchaseItem,
+        findAllPurchases,
+        findPurchaseById,
+        findPurchaseItems
     } = require ("../models/purchaseModel");
 
     const {
@@ -138,5 +141,28 @@
         }
     };
 
-module.exports = {createPurchaseService};
+const getAllPurchasesService = async () => {
+    const purchases = await findAllPurchases();
+
+    return purchases;
+};
+
+const getPurchaseByIdService = async (id) => {
+    const purchase = await findPurchaseById(id);
+
+    if (!purchase) {
+        throw new AppError("Purchase not found", 404);
+    }
+
+    const items = await findPurchaseItems(id);
+
+    return { ...purchase, items };
+};
+
+
+module.exports = {
+    createPurchaseService,
+    getAllPurchasesService,
+    getPurchaseByIdService
+};
 

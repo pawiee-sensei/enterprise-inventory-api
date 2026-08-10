@@ -6,7 +6,7 @@ const findAllPurchases = async () => {
         `SELECT 
             p.id,
             s.name AS supplier,
-            u.name AS created_by,
+            CONCAT(u.first_name, ' ', u.last_name) AS created_by,
             p.purchase_date,
             p.total_amount,
             p.status
@@ -27,19 +27,47 @@ const findAllPurchases = async () => {
 const findPurchaseById = async (id) => {
     const [rows] = await pool.execute(
         `SELECT
-            id,
-            supplier_id,
-            user_id,
-            purchase_date,
-            total_amount,
-            status
-        FROM purchases
-        WHERE id = ?
+            p.id,
+            s.name AS supplier,
+            CONCAT(u.first_name, ' ', u.last_name) AS created_by,
+            p.purchase_date,
+            p.total_amount,
+            p.status
+        FROM purchases p
+
+        INNER JOIN suppliers s
+            ON p.supplier_id = s.id
+
+        INNER JOIN users u
+            ON p.user_id = u.id
+
+        WHERE p.id = ?
         `,
         [id]
     );
 
     return rows[0];
+};
+
+const findPurchaseItems = async(purchaseId) => {
+    const [rows] = await pool.execute(
+        `SELECT
+            pi.id,
+            p.name AS product,
+            pi.quantity,
+            pi.unit_cost,
+            pi.subtotal
+        FROM purchase_items pi
+
+        INNER JOIN products p
+            ON pi.product_id = p.id
+
+        WHERE pi.purchase_id = ?
+        `,
+        [purchaseId]
+    );
+
+    return rows;
 };
 
 //Operation transaction
@@ -109,6 +137,7 @@ const createPurchaseItem = async(
 module.exports = {
     findAllPurchases,
     findPurchaseById,
+    findPurchaseItems,
     createPurchase,
     createPurchaseItem,
 };
