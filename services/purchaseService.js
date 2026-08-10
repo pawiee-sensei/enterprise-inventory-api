@@ -15,15 +15,18 @@
         findSupplierById
     } = require("../models/supplierModel");
 
+
     const AppError = require("../utils/AppError");
 
+    // Create a new purchase
     const createPurchaseService = async (
-        //req.body from purchase controller
+        //Purchase data supplier/items = product_id/quantity/unit_cost
         purchaseData,
         //from user id
         userId
     ) => {
-
+        
+        // Get a database connection
         const connection = await pool.getConnection();
 
         try{
@@ -40,11 +43,11 @@
 
         // Loop through the items and calculate the total amount
         for (const item of purchaseData.items) {
-            // Get the unit_cost from the product and calculate the subtotal
+            // Calculate the total amount of the purchase
             totalAmount += item.quantity * item.unit_cost;
         }
 
-
+        // Step 1: Create the purchase
         const purchaseId = await createPurchase(
             connection,
             {
@@ -54,6 +57,7 @@
             }
         );
 
+        // Loop through the items = product_id/quantity/unit_cost
         for (const item of purchaseData.items) {
 
             // Step 1: Validate the product exists
@@ -73,7 +77,7 @@
             await createPurchaseItem(
                 connection,
                 {
-                    purchase_Id: purchaseId,
+                    purchase_id: purchaseId,
                     product_id: item.product_id,
                     quantity: item.quantity,
                     unit_cost: item.unit_cost,
@@ -81,11 +85,12 @@
                 }
             );
 
-            // Step 4: Update Product Stock
-
+    // Step 4: Remember the previous stock
     const previousStock = product.stock;
+    // Step 4: Previous stock + quantity
     const newStock = previousStock + item.quantity;
-
+    
+    // Step 4: Increase the product stock  on database
     await increaseProductStock(
         connection,
         item.product_id,
@@ -93,7 +98,6 @@
     );
 
     // Step 5: Create Inventory Log
-
     await createInventoryLog(
         connection,
         {
@@ -108,11 +112,10 @@
     );
         }
 
-
-
-
+        // Commit the transaction/update the database
         await connection.commit();
 
+        // Return the purchase data
         return {
             id: purchaseId,
             supplier_id: purchaseData.supplier_id,
@@ -123,13 +126,17 @@
 
         } catch (error) {
 
+            // Rollback the transaction if transaction fails
             await connection.rollback();
 
+            
             throw error;
+
+            // Release the connection
         } finally {
             connection.release();
         }
     };
 
-module.exports = createPurchaseService;
+module.exports = {createPurchaseService};
 

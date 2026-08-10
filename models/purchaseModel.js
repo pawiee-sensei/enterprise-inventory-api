@@ -1,4 +1,4 @@
-const { Connection } = require("mysql2");
+
 const pool = require("../database/db");
 
 const findAllPurchases = async () => {
@@ -8,7 +8,7 @@ const findAllPurchases = async () => {
             s.name AS supplier,
             u.name AS created_by,
             p.purchase_date,
-            p.total_amount
+            p.total_amount,
             p.status
         FROM purchases p
 
@@ -18,7 +18,6 @@ const findAllPurchases = async () => {
         INNER JOIN users u
             ON p.user_id = u.id
 
-        WHERE p.is_active = 1
         ORDER BY p.id DESC`
     );
 
@@ -28,7 +27,7 @@ const findAllPurchases = async () => {
 const findPurchaseById = async (id) => {
     const [rows] = await pool.execute(
         `SELECT
-            p.id,
+            id,
             supplier_id,
             user_id,
             purchase_date,
@@ -47,17 +46,23 @@ const findPurchaseById = async (id) => {
 const createPurchase = async(
     connection,
     //from table purchases
-    supplierId,
-    //from table users
-    userId
+    purchaseData
 ) => {
+
+    const {
+        supplier_id,
+        user_id,
+        total_amount
+    } = purchaseData;
+
     const [result] = await connection.execute(
         `INSERT INTO purchases(
             supplier_id,
-            user_id
+            user_id,
+            total_amount
         )
-        VALUES(?, ?)`,
-        [supplierId, userId]
+        VALUES(?, ?, ?)`,
+        [supplier_id, user_id, total_amount]
     );
 
     return result.insertId;
@@ -65,17 +70,21 @@ const createPurchase = async(
 
 const createPurchaseItem = async(
     connection,
-    //from table purchases
-    purchaseId,
     //array of purchase items
-    item
+    itemData
 ) => {
 
-    //Get the unit_cost from the product
-    const subtotal = item.quantity * item.unit_cost;
+    const {
+        purchase_id,
+        product_id,
+        quantity,
+        unit_cost,
+        subtotal
+    } = itemData;
 
     //Insert the purchase item
     await connection.execute(
+
         `INSERT INTO purchase_items(    
             purchase_id,
             product_id,
@@ -85,10 +94,10 @@ const createPurchaseItem = async(
         )
         VALUES(?, ?, ?, ?, ?)`,
         [   
-            purchaseId,
-            item.product_id,
-            item.quantity,
-            item.unit_cost,
+            purchase_id,
+            product_id,
+            quantity,
+            unit_cost,
             subtotal
         ]
     );
@@ -96,31 +105,10 @@ const createPurchaseItem = async(
     return subtotal;
 };
 
-const updatePurchaseTotal = async (
-    connection,
-    //from table purchases
-    purchaseId,
-    //calculated from table purchase_items
-    totalAmount
-) => {
-
-    await connection.execute(
-        `
-        UPDATE purchases
-        SET total_amount = ?
-        WHERE id = ?
-        `,
-        [
-            totalAmount,
-            purchaseId
-        ]
-    );
-};
 
 module.exports = {
     findAllPurchases,
     findPurchaseById,
     createPurchase,
     createPurchaseItem,
-    updatePurchaseTotal
 };
