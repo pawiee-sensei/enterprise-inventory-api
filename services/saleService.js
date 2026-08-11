@@ -1,0 +1,140 @@
+const pool = require("../database/db");
+
+const {
+    createSale,
+    createSaleItem
+} = require("../models/saleModel");
+
+const {
+    findProductForUpdate,
+    decreaseProductStock,
+    createInventoryLog
+} = require("../models/inventoryModel");
+
+const AppError = require("../utils/AppError");
+
+const createSaleService = async(
+    saleData,
+    userId
+) => {
+
+    const connection = await pool.getConnection();
+
+    try{
+        //start the transaction
+        await connection.beginTransaction();
+
+        let totalAmount = 0;
+
+        //loop through the items and calculate the total amount
+        for(const item of saleData.items){
+            
+            //find the product and lock it
+            //productId = products.id
+            const product = await findProductForUpdate(
+                connection,
+                item.product_id
+            );
+
+            //if the product does not exist throw an error
+            if(!product){
+                throw new AppError("Product not found", 404);
+            }
+        
+        
+            //if the stock is less than the quantity throw an error
+            if(product.stock < item.quantity){
+                throw new AppError("Not enough stock", 400);
+            }
+
+        // Calculate subtotal using the product's current selling price.
+        const subtotal = item.quantity * product.selling_price;
+            // Add this item's subtotal to the sale total.
+            totalAmount += subtotal;
+        }
+
+        //Step 1: Create the main sale record
+        const saleId = await createSale(
+            connection,
+            {
+                user_id: userId, // users.id
+                total_amount: totalAmount // sales.total_amount
+            }
+        );
+
+        //loop through the sale items again
+        for(const item of saleData.items){
+
+            //Get the product again
+            const product = await findProductForUpdate(
+                connection,
+                item.product_id //products.id
+            );
+
+            //get the unit price from the product
+            const unitPrice = product.selling_price;
+
+            //Calculate the subtotal using the product's current selling price * quantity
+            const subtotal = item.quantity * unitPrice;
+
+            //Step 2: Create the sale Item.
+            await createSaleItem (
+                connection,
+                {
+                    sale_id: saleId, // sales.id → sale_items.sale_id
+                    product_id: item.product_id,  // products.id
+                    quantity: item.quantity, // req.body.items[].quantity
+                    unit_price: unitPrice, // products.selling_price
+                    subtotal
+                }
+            );
+
+            //Remember the previous stock
+            const previousStock = product.stock;
+
+            //Calculate the stock after the sale.
+            const newStock = product.stock - item.quantity;
+            
+            //Step 3: Decrease the product stock
+            await decreaseProductStock(
+                connection,
+                item.product_id, // products.id
+                item.quantity    // sale_items.quantity
+            );
+
+            //Step 4: Create the inventory log
+            await createInventoryLog(
+                connection,
+                {
+                    productId: item.product_id, // products.id
+                    userId,                      // users.id
+                    quantity: item.quantity,     // sale_items.quantity
+                    previousStock,               // products.stock before sale
+                    newStock,                    // products.stock after sale
+
+                    movementType: "SALE",
+                    referenceType: "SALE",
+                    referenceId: saleId,
+
+                    remarks: "Stock removed from sale"
+                }
+            );
+        }
+
+        await connection.commit();
+
+        return{
+            id: saleId,
+            total_amount: totalAmount,
+            status: "COMPLETED"
+        };
+
+    } catch (error) {
+        await connection.rollback();
+        throw error;
+    } finally {
+        connection.release();
+    }
+};
+
+module.exports = createSaleService;
