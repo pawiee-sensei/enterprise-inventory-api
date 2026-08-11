@@ -104,12 +104,14 @@
     await createInventoryLog(
         connection,
         {
-            productId: item.product_id,
-            userId,
-            quantity: item.quantity,
-            previousStock,
-            newStock,
-            purchaseId,
+            productId: item.product_id,       // products.id
+            userId,                            // users.id
+            quantity: item.quantity,           // purchase_items.quantity
+            previousStock,                     // products.stock before update
+            newStock,                          // products.stock after update
+            movementType: "PURCHASE",          // inventory_logs.movement_type
+            referenceType: "PURCHASE",         // purchases.id relationship
+            referenceId: purchaseId,           // purchases.id
             remarks: "Stock added from supplier purchase"
         }
     );

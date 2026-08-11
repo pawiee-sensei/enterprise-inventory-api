@@ -1,10 +1,13 @@
 const pool = require("../database/db");
 
+
 const findProductForUpdate = async (
     connection,
-    productId
+    productId // products.id
 ) => {
 
+    // Read the current stock and lock this product
+    // until the transaction is completed.
     const [rows] = await connection.execute(
         `
         SELECT
@@ -12,6 +15,7 @@ const findProductForUpdate = async (
             stock
         FROM products
         WHERE id = ?
+        FOR UPDATE
         `,
         [productId]
     );
@@ -19,10 +23,12 @@ const findProductForUpdate = async (
     return rows[0];
 };
 
-const increaseProductStock = async(
+
+// Increase product stock after a supplier purchase.
+const increaseProductStock = async (
     connection,
-    productId,
-    quantity
+    productId, // products.id
+    quantity   // purchase_items.quantity
 ) => {
 
     await connection.execute(
@@ -33,20 +39,44 @@ const increaseProductStock = async(
         `,
         [quantity, productId]
     );
-
 };
 
-const createInventoryLog = async(
+
+// Decrease product stock when purchased products are returned.
+const decreaseProductStock = async (
+    connection,
+    productId, // products.id
+    quantity   // purchase_return_items.quantity
+) => {
+
+    const [result] = await connection.execute(
+        `
+        UPDATE products
+        SET stock = stock - ?
+        WHERE id = ?
+        `,
+        [quantity, productId]
+    );
+
+    return result.affectedRows;
+};
+
+
+// Create an inventory movement log.
+const createInventoryLog = async (
     connection,
     logData
 ) => {
+
     const {
         productId,
         userId,
         quantity,
         previousStock,
         newStock,
-        purchaseId,
+        movementType,
+        referenceType,
+        referenceId,
         remarks
     } = logData;
 
@@ -63,22 +93,26 @@ const createInventoryLog = async(
             reference_id,
             remarks
         )
-        VALUES(?, ?,'PURCHASE', ?, ?, ?, 'PURCHASE', ?, ?)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
         [
             productId,
             userId,
+            movementType,
             quantity,
             previousStock,
             newStock,
-            purchaseId,
+            referenceType,
+            referenceId,
             remarks
         ]
     );
 };
 
+
 module.exports = {
     findProductForUpdate,
     increaseProductStock,
+    decreaseProductStock,
     createInventoryLog
 };
