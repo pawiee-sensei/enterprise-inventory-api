@@ -22,6 +22,7 @@ const purchaseRoutes = require("./routes/purchaseRoutes");
 const purchaseReturnRoutes = require("./routes/purchaseReturnRoutes");
 const saleRoutes = require("./routes/saleRoutes");
 const saleReturnRoutes = require("./routes/saleReturnRoutes");
+const inventoryAdjustmentRoutes = require("./routes/inventoryAdjustmentRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -88,7 +89,8 @@ app.use("/api/suppliers", supplierRoutes);
 app.use("/api/purchases", purchaseRoutes);
 app.use("/api/purchases", purchaseReturnRoutes);
 app.use("/api/sales", saleRoutes);
-app.use("/api/sales", saleReturnRoutes);
+app.use("/api/sale-returns", saleReturnRoutes);
+app.use("/api/inventory-adjustments", inventoryAdjustmentRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware)
