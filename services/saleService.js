@@ -77,6 +77,7 @@ const createSaleService = async(
             //Calculate the subtotal using the product's current selling price * quantity
             const subtotal = item.quantity * unitPrice;
 
+            
             //Step 2: Create the sale Item.
             await createSaleItem (
                 connection,
@@ -137,4 +138,4 @@ const createSaleService = async(
     }
 };
 
-module.exports = createSaleService;
+module.exports = {createSaleService};

@@ -48,7 +48,7 @@ const createSaleItem = async(
         subtotal// sale_items.subtotal
     } = itemData;
 
-    const [result] = await Connection.execute(
+    await Connection.execute(
         `
         INSERT INTO sale_items(
             sale_id,

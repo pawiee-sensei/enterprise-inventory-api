@@ -12,7 +12,8 @@ const findProductForUpdate = async (
         `
         SELECT
             id,
-            stock
+            stock,
+            selling_price
         FROM products
         WHERE id = ?
         FOR UPDATE
