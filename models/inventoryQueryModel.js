@@ -29,4 +29,36 @@ const findAllInventory = async() => {
     return rows;
 };
 
-module.exports = { findAllInventory };
+// Get products that are at or below their minimum stock level.
+// stock = products.stock
+// minimum_stock = products.minimum_stock
+const findLowStockInventory = async() => {
+    const [rows] = await pool.execute(
+        `
+        SELECT
+            p.id,
+            p.sku,
+            p.name,
+            p.stock,
+            p.minimum_stock,
+            c.name AS category,
+            s.name AS supplier
+        FROM products p
+        
+        INNER JOIN categories c
+            ON p.category_id = c.id
+        INNER JOIN suppliers s
+            ON p.supplier_id = s.id
+        
+        WHERE p.stock <= p.minimum_stock
+        ORDER BY p.stock ASC
+        `
+    );
+
+    return rows;
+};
+
+module.exports = {
+    findAllInventory,
+    findLowStockInventory
+};

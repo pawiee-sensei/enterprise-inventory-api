@@ -1,7 +1,8 @@
 const pool = require("../database/db");
 
 const {
-    findAllInventory
+    findAllInventory,
+    findLowStockInventory
 } = require("../models/inventoryQueryModel");
 
 const AppError = require("../utils/AppError");
@@ -12,4 +13,13 @@ const getAllInventoryService = async () => {
     return inventory;
 };
 
-module.exports = {getAllInventoryService};
+const getLowStockInventoryService = async () => {
+    const inventory = await findLowStockInventory();
+
+    return inventory;
+};
+
+module.exports = {
+    getAllInventoryService,
+    getLowStockInventoryService
+};

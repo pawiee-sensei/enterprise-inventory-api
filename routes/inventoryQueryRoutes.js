@@ -1,7 +1,8 @@
 const express = require("express");
 
 const {
-    getAllInventory
+    getAllInventory,
+    getLowStockInventory
 } = require("../controllers/inventoryQueryController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -14,6 +15,13 @@ router.get(
     "/",
     authMiddleware,
     getAllInventory
+);
+
+// Get all products with low stock.
+router.get(
+    "/low-stock",
+    authMiddleware,
+    getLowStockInventory
 );
 
 module.exports = router;
