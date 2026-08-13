@@ -58,7 +58,44 @@ const findLowStockInventory = async() => {
     return rows;
 };
 
+const findInventoryLogsByProductId = async (productId) => {
+    const [rows] = await pool.execute(
+        `
+        SELECT
+            id,
+            product_id,
+            user_id,
+            movement_type,
+            quantity,
+            previous_stock,
+            new_stock,
+            reference_type,
+            reference_id,
+            remarks,
+            created_at
+        FROM inventory_logs
+        WHERE product_id = ?
+        ORDER BY id DESC
+        `,
+        [productId]
+    );
+    return rows;
+};
+
+const findProductById = async (productId) => {
+    const [rows] = await pool.execute(
+        `SELECT
+            id
+        FROM products
+        WHERE id = ?`,
+        [productId]
+    );
+    return rows[0];
+};
+
 module.exports = {
     findAllInventory,
-    findLowStockInventory
+    findLowStockInventory,
+    findInventoryLogsByProductId,
+    findProductById
 };
