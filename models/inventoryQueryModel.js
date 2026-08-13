@@ -57,7 +57,10 @@ const findLowStockInventory = async() => {
 
     return rows;
 };
-
+// Get all inventory logs for a specific product
+// id = inventory_logs.id
+// product_id = inventory_logs.product_id
+// user_id = inventory_logs.user_id
 const findInventoryLogsByProductId = async (productId) => {
     const [rows] = await pool.execute(
         `
@@ -93,9 +96,44 @@ const findProductById = async (productId) => {
     return rows[0];
 };
 
+// Get inventory summary statistics.
+// total_products = number of products
+// total_stock = total quantity across all products
+// low_stock_products = products where stock <= minimum_stock
+// out_of_stock_products = products where stock = 0
+
+const getInventorySummary = async() => {
+
+    const [rows] = await pool.execute(
+        `
+        SELECT
+            COUNT(*) AS total_products,
+            COALESCE(SUM(stock), 0) AS total_stock,
+            SUM(
+                CASE
+                    WHEN stock <= minimum_stock
+                    THEN 1
+                    ELSE 0
+                END
+            ) AS low_stock_products,
+            SUM(
+                CASE
+                    WHEN stock = 0
+                    THEN 1
+                    ELSE 0
+                END
+            ) AS out_of_stock_products
+        FROM products
+        `
+    );
+
+    return rows[0];
+};
+
 module.exports = {
     findAllInventory,
     findLowStockInventory,
     findInventoryLogsByProductId,
-    findProductById
+    findProductById,
+    getInventorySummary
 };

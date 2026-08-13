@@ -4,7 +4,8 @@ const {
     findAllInventory,
     findLowStockInventory,
     findInventoryLogsByProductId,
-    findProductById
+    findProductById,
+    getInventorySummary
 } = require("../models/inventoryQueryModel");
 
 const AppError = require("../utils/AppError");
@@ -34,10 +35,19 @@ const getInventoryLogsByProductIdService = async (productId) => {
     return logs;
 };
 
+const getInventorySummaryService = async () => {
+    const summary = await getInventorySummary();
+
+    return summary;
+};
+
+
+
 
 
 module.exports = {
     getAllInventoryService,
     getLowStockInventoryService,
-    getInventoryLogsByProductIdService
+    getInventoryLogsByProductIdService,
+    getInventorySummaryService
 };

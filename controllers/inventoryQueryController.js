@@ -3,7 +3,8 @@ const asyncHandler = require("../utils/asyncHandler");
 const {
     getAllInventoryService,
     getLowStockInventoryService,
-    getInventoryLogsByProductIdService
+    getInventoryLogsByProductIdService,
+    getInventorySummaryService
 } = require("../services/inventoryQueryService");
 
 
@@ -37,9 +38,19 @@ const getInventoryLogsByProductId = asyncHandler(async(req, res) => {
     });
 });
 
+const getInventorySummary = asyncHandler(async(req, res) => {
+
+    const summary = await getInventorySummaryService();
+
+    res.status(200).json({
+        success: true,
+        data: summary
+    });
+})
 
 module.exports = {
     getAllInventory,
     getLowStockInventory,
     getInventoryLogsByProductId,
+    getInventorySummary
 };
