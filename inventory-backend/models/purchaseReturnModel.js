@@ -4,9 +4,9 @@ const pool = require("../database/db");
 // Needs: purchase_id, user_id, reason from table purchase_returns
 const createPurchaseReturn = async (
     connection,
-    returnData
+    returnData 
 ) => {
-
+    
     const {
         purchase_id, // purchases.id
         user_id,    // users.id

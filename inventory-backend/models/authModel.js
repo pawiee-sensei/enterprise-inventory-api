@@ -1,5 +1,6 @@
 const pool = require("../database/db");
 
+
 const findUserByEmail  = async(email) => {
     const [rows] = await pool.execute(
         `SELECT * FROM users WHERE email = ?`,
@@ -8,6 +9,7 @@ const findUserByEmail  = async(email) => {
 
     return rows[0];
 };
+
 
 const createUser = async(userData) => {
     const {
@@ -18,6 +20,7 @@ const createUser = async(userData) => {
         password
     } = userData;
 
+    // insert user into database
     const [result] = await pool.execute(
         `
         INSERT INTO users(

@@ -8,6 +8,7 @@ const {
     updateProduct,
     deleteProduct
 } = require('../models/productModel');
+
 const AppError = require('../utils/AppError');
 
 const createProductService = async (productData) => {

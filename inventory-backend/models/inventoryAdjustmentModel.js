@@ -2,7 +2,7 @@ const pool = require("../database/db");
 
 const findProductForUpdate = async(
     connection,
-    productId
+    productId   //products.id
 ) => {
 
     const [rows] = await connection.execute(
@@ -60,4 +60,4 @@ module.exports = {
     findProductForUpdate,
     increaseProductStock,
     decreaseProductStock
-}
+};

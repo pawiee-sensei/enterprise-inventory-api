@@ -26,14 +26,13 @@ const createSaleService = async(
 
         let totalAmount = 0;
 
-        //loop through the items and calculate the total amount
+        //loop through the saleitems
         for(const item of saleData.items){
             
             //find the product and lock it
-            //productId = products.id
             const product = await findProductForUpdate(
                 connection,
-                item.product_id
+                item.product_id //items.product_id = products.id
             );
 
             //if the product does not exist throw an error
@@ -47,9 +46,9 @@ const createSaleService = async(
                 throw new AppError("Not enough stock", 400);
             }
 
-        // Calculate subtotal using the product's current selling price.
+        // Calculate subtotal using the product's current selling price * quantity.
         const subtotal = item.quantity * product.selling_price;
-            // Add this item's subtotal to the sale total.
+            // Add this item's subtotal to the total amount.
             totalAmount += subtotal;
         }
 

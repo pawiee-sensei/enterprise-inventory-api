@@ -18,6 +18,7 @@ const router = express.Router();
 router.get(
     "/",
     authMiddleware,
+    autorize(1, 2),
     getAllInventory
 );
 
@@ -25,12 +26,14 @@ router.get(
 router.get(
     "/low-stock",
     authMiddleware,
+    autorize(1, 2),
     getLowStockInventory
 );
 
 router.get(
     "/:productId/logs",
     authMiddleware,
+    autorize(1, 2),
     validateInventoryProduct,
     getInventoryLogsByProductId
 );
@@ -38,6 +41,7 @@ router.get(
 router.get(
     "/summary",
     authMiddleware,
+    autorize(1, 2),
     getInventorySummary
 );
 

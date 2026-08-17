@@ -1,3 +1,7 @@
-﻿node_modules/
-.env
-zpractice.js
+inventory-backend/node_modules/
+inventory-backend/.env
+inventory-backend/zpractice.js
+
+inventory-frontend/node_modules/
+inventory-frontend/dist/
+inventory-frontend/.env

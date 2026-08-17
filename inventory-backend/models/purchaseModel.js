@@ -78,9 +78,9 @@ const createPurchase = async(
 ) => {
 
     const {
-        supplier_id,
-        user_id,
-        total_amount
+        supplier_id, //suppliers.id
+        user_id,     //users.id
+        total_amount //purchases.total_amount
     } = purchaseData;
 
     const [result] = await connection.execute(
