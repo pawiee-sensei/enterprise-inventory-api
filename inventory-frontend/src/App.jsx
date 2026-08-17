@@ -1,8 +1,14 @@
 import { useState } from "react";
 import { registerUser, loginUser } from "./api/authApi";
+import { useAuth } from "./context/AuthContext";
 
 
 function App() {
+
+    ////////////////////////////
+    // auth context
+    ////////////////////////////
+    const { user, login, logout, isAuthenticated } = useAuth();
 
   ////////////////////////////
   // register user use state
@@ -65,6 +71,9 @@ try {
     try {
       const data = await loginUser(loginForm.email, loginForm.password);
 
+      // update auth context
+      login(data.token, data.user);
+
       setLoginResult(JSON.stringify(data, null, 2));
 
     } catch (err) {
@@ -74,6 +83,16 @@ try {
 
   return (
     <div>
+
+      <div style={{ background: "#eee", padding: "10px" }}>
+        <strong>Current user (from context):</strong> {isAuthenticated ? JSON.stringify(user) : "Not logged in"}
+        {isAuthenticated && (
+          <button onClick={logout} style={{ marginLeft: "10px" }}>
+            Logout
+          </button>
+        )}
+      </div>
+
       {/* new: register form */}
       <h1>Register</h1>
       <form onSubmit={handleSubmit}>
