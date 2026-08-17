@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
 
 function Login() {
     const { login } = useAuth();
+    const navigate = useNavigate();
 
     const [loginForm, setLoginForm] = useState({
     email: "",
@@ -24,6 +25,8 @@ function Login() {
         const data = await loginUser(loginForm.email, loginForm.password);
 
         login(data.token, data.user);
+
+        navigate("/dashboard");
 
         setLoginResult(JSON.stringify(data, null, 2));
         
@@ -56,9 +59,10 @@ return (
 
         <pre>{loginResult}</pre>
 
-              <p>
-        Don't have an account? <Link to="/register">Register here</Link>
-      </p>
+        <p>
+            Don't have an account? <Link to="/register">Register here</Link>
+        </p>
+
     </div>
 
 );
