@@ -1,25 +1,28 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../api/authApi";
-import { useAuth } from "../context/AuthContext";
+import { useAuth, ROLES } from "../context/AuthContext";
 
 function Login() {
-    const { login, isAuthenticated } = useAuth();
+    //HOOKS & CONTEXT
+    const { login, user, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
+    //USE STATE 
     const [loginForm, setLoginForm] = useState({
     email: "",
     password: "",
 });
     const [loginResult, setLoginResult] = useState("");
 
+    //USE EFFECT
     useEffect(() => {
-  if (isAuthenticated) {
-    navigate("/dashboard");
-  }
-}, [isAuthenticated, navigate]);
+        if (isAuthenticated) {
+            navigate(user.role === ROLES.ADMIN ? "/admin" : "/dashboard");
+        }
+        }, [isAuthenticated, user, navigate]);
 
-
+    //HANDLERS
     const handleLoginChange = (e) => {
         setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
     };
@@ -30,12 +33,9 @@ function Login() {
 
     try {
         const data = await loginUser(loginForm.email, loginForm.password);
+        console.log("Login response:", data);
 
         login(data.token, data.user);
-
-        navigate("/dashboard");
-
-        setLoginResult(JSON.stringify(data, null, 2));
         
     } catch (err) {
         setLoginResult("Error: " + err.message);

@@ -1,5 +1,10 @@
 import { createContext, useContext, useState, useEffect } from "react";
 
+export const ROLES = {
+  ADMIN: 1,
+  STAFF: 2,
+};
+
 const AuthContext = createContext(null);
 
 export function AuthProvider({ children }) {
