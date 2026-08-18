@@ -1,10 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../api/authApi";
 import { useAuth } from "../context/AuthContext";
 
 function Login() {
-    const { login } = useAuth();
+    const { login, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
     const [loginForm, setLoginForm] = useState({
@@ -12,6 +12,13 @@ function Login() {
     password: "",
 });
     const [loginResult, setLoginResult] = useState("");
+
+    useEffect(() => {
+  if (isAuthenticated) {
+    navigate("/dashboard");
+  }
+}, [isAuthenticated, navigate]);
+
 
     const handleLoginChange = (e) => {
         setLoginForm({ ...loginForm, [e.target.name]: e.target.value });
