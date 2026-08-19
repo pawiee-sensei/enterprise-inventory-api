@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Categories from "./pages/admin/Categories";
 import Suppliers from "./pages/admin/Suppliers";
+import Products from "./pages/admin/Products";
 
 function App() {
   return (
@@ -53,6 +54,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
               <Suppliers />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/products"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+              <Products />
             </ProtectedRoute>
           }
         />

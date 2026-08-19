@@ -11,6 +11,8 @@
                 p.cost_price,
                 p.selling_price,
                 p.stock,
+                p.category_id,
+                p.supplier_id,
                 p.minimum_stock,
                 c.name AS category,
                 s.name AS supplier
@@ -40,6 +42,8 @@
                 p.selling_price,
                 p.stock,
                 p.minimum_stock,
+                p.category_id,
+                p.supplier_id,
                 p.is_active,
                 c.name AS category,
                 s.name AS supplier
