@@ -4,6 +4,7 @@ const {
     createCategory,
     getAllCategories,
     getCategoryById,
+    updateCategory,
     deleteCategory
 } = require('../controllers/categoryController');
 
@@ -16,6 +17,7 @@ const router = express.Router();
 router.post('/', authMiddleware, authorize(1), validateCategory, createCategory);
 router.get('/', authMiddleware, authorize(1, 2), getAllCategories);
 router.get('/:id', authMiddleware, authorize(1, 2), getCategoryById);
+router.put('/:id', authMiddleware, authorize(1), validateCategory, updateCategory);
 router.delete('/:id', authMiddleware, authorize(1), deleteCategory);
 
 

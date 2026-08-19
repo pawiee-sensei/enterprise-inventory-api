@@ -1,11 +1,15 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Register from "./pages/Register";
-import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard";
-import AdminDashboard from "./pages/admin/AdminDashboard";
+
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/Layout";
 import { ROLES } from "./context/AuthContext";
+
+import Register from "./pages/Register";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import Categories from "./pages/admin/Categories";
 
 function App() {
   return (
@@ -30,6 +34,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
               <AdminDashboard />
+            </ProtectedRoute>
+          }
+        />
+        
+        <Route
+          path="/admin/categories"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+              <Categories />
             </ProtectedRoute>
           }
         />

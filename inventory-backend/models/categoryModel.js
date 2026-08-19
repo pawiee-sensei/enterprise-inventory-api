@@ -67,6 +67,24 @@ const pool = require("../database/db");
         return result.insertId;
     };
 
+const updateCategory = async (id, categoryData) => {
+    const { name, description } = categoryData;
+
+    const [result] = await pool.execute(
+        `
+        UPDATE categories
+        SET
+            name = ?,
+            description = ?
+        WHERE id = ?
+        AND is_active = 1
+        `,
+        [name, description, id]
+    );
+
+    return result.affectedRows;
+};
+
 const deleteCategory = async (id) => {
 
     const [result] = await pool.execute(
@@ -87,5 +105,6 @@ module.exports = {
     findCategoryById,
     findCategoryByName,
     createCategory,
+    updateCategory,
     deleteCategory
 };

@@ -3,6 +3,7 @@ const {
     findCategoryById,
     findCategoryByName,
     createCategory,
+    updateCategory,
     deleteCategory
 } = require('../models/categoryModel');
 
@@ -46,6 +47,33 @@ const getCategoryByIdService = async (id) => {
     return category;
 };
 
+const updateCategoryService = async (id, categoryData) => {
+
+    // Check the category exists first
+    const category = await findCategoryById(id);
+
+    if (!category) {
+        throw new AppError('Category not found', 404);
+    }
+
+    // If renaming, make sure the new name isn't already taken by a different category
+    if (categoryData.name && categoryData.name !== category.name) {
+        const existingCategory = await findCategoryByName(categoryData.name);
+
+        if (existingCategory) {
+            throw new AppError('Category name already exists', 409);
+        }
+    }
+
+    await updateCategory(id, categoryData);
+
+    return {
+        id,
+        name: categoryData.name,
+        description: categoryData.description
+    };
+};
+
 const deleteCategoryService = async (id) => {
 
     // Delete the category by ID from the database
@@ -64,5 +92,6 @@ module.exports = {
     createCategoryService,
     getAllCategoriesService,
     getCategoryByIdService,
+    updateCategoryService,
     deleteCategoryService
 };
