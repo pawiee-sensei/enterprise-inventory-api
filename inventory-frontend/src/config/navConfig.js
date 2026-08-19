@@ -16,4 +16,9 @@ export const navItems = [
     path: "/admin/categories",
     roles: [ROLES.ADMIN],
   },
+  {
+  label: "Suppliers",
+  path: "/admin/suppliers",
+  roles: [ROLES.ADMIN],
+  },
 ];

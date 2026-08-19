@@ -49,13 +49,16 @@ import { getAllCategories, createCategory, updateCategory, deleteCategory } from
         }
     };
 
-    const handleDelete = async (id) => {
-        try {
+    const handleDelete = async (id, name) => {
+    const confirmed = window.confirm(`Are you sure you want to delete category: ${name}?`);
+    if (!confirmed) return;
+
+    try {
         await deleteCategory(id);
-        loadCategories(); // refresh the list
-        } catch (err) {
+        loadCategories();
+    } catch (err) {
         setError(err.response?.data?.message || "Failed to delete category");
-        }
+    }
     };
 
     const handleEditClick = (cat) => {
@@ -118,7 +121,7 @@ import { getAllCategories, createCategory, updateCategory, deleteCategory } from
                     <td>
                         <td>
                         <button onClick={() => handleEditClick(cat)}>Edit</button>
-                        <button onClick={() => handleDelete(cat.id)}>Delete</button>
+                        <button onClick={() => handleDelete(cat.id, cat.name)}>Delete</button>
                         </td>
                     </td>
                 </tr>
