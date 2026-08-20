@@ -1,7 +1,9 @@
 const asyncHandler = require("../utils/asyncHandler");
 
 const {
-    createSaleService
+    createSaleService,
+    getAllSalesService,
+    getSaleByIdService
 } = require("../services/saleService");
 
 const createSale = asyncHandler(async (req, res) => {
@@ -14,6 +16,27 @@ const createSale = asyncHandler(async (req, res) => {
     })
 });
 
+const getAllSales = asyncHandler(async (req, res) => {
+    const sales = await getAllSalesService();
+
+    res.status(200).json({
+        success: true,
+        count: sales.length,
+        data: sales
+    });
+});
+
+const getSaleById = asyncHandler(async (req, res) => {
+    const sale = await getSaleByIdService(req.params.id);
+
+    res.status(200).json({
+        success: true,
+        data: sale
+    });
+});
+
 module.exports = {
-    createSale
+    createSale,
+    getAllSales,
+    getSaleById
 };

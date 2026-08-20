@@ -69,7 +69,71 @@ const createSaleItem = async(
     );
 };
 
+const findAllSales = async () => {
+    const [rows] = await pool.execute(
+        `SELECT
+            s.id,
+            CONCAT(u.first_name, ' ', u.last_name) AS created_by,
+            s.sale_date,
+            s.total_amount,
+            s.status
+        FROM sales s
+
+        INNER JOIN users u
+            ON s.user_id = u.id
+
+        ORDER BY s.id DESC`
+    );
+
+    return rows;
+};
+
+const findSaleById = async (id) => {
+    const [rows] = await pool.execute(
+        `SELECT
+            s.id,
+            CONCAT(u.first_name, ' ', u.last_name) AS created_by,
+            s.sale_date,
+            s.total_amount,
+            s.status
+        FROM sales s
+
+        INNER JOIN users u
+            ON s.user_id = u.id
+
+        WHERE s.id = ?
+        `,
+        [id]
+    );
+
+    return rows[0];
+};
+
+const findSaleItems = async (saleId) => {
+    const [rows] = await pool.execute(
+        `SELECT
+            si.id,
+            p.name AS product,
+            si.quantity,
+            si.unit_price,
+            si.subtotal
+        FROM sale_items si
+
+        INNER JOIN products p
+            ON si.product_id = p.id
+
+        WHERE si.sale_id = ?
+        `,
+        [saleId]
+    );
+
+    return rows;
+};
+
 module.exports = {
     createSale,
-    createSaleItem
+    createSaleItem,
+    findAllSales,
+    findSaleById,
+    findSaleItems
 };

@@ -2,7 +2,10 @@ const pool = require("../database/db");
 
 const {
     createSale,
-    createSaleItem
+    createSaleItem,
+    findAllSales,
+    findSaleById,
+    findSaleItems
 } = require("../models/saleModel");
 
 const {
@@ -137,4 +140,25 @@ const createSaleService = async(
     }
 };
 
-module.exports = {createSaleService};
+const getAllSalesService = async () => {
+    const sales = await findAllSales();
+    return sales;
+};
+
+const getSaleByIdService = async (id) => {
+    const sale = await findSaleById(id);
+
+    if (!sale) {
+        throw new AppError("Sale not found", 404);
+    }
+
+    const items = await findSaleItems(id);
+
+    return { ...sale, items };
+};
+
+module.exports = {
+    createSaleService,
+    getAllSalesService,
+    getSaleByIdService
+};
