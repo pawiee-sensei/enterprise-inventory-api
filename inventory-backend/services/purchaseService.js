@@ -5,7 +5,8 @@
         createPurchaseItem,
         findAllPurchases,
         findPurchaseById,
-        findPurchaseItems
+        findPurchaseItems,
+        findProductsPurchasedFromSupplier
     } = require ("../models/purchaseModel");
 
     const {
@@ -161,10 +162,15 @@ const getPurchaseByIdService = async (id) => {
     return { ...purchase, items };
 };
 
+const getProductsPurchasedFromSupplierService = async (supplierId) => {
+    const products = await findProductsPurchasedFromSupplier(supplierId);
+    return products;
+};
 
 module.exports = {
     createPurchaseService,
     getAllPurchasesService,
-    getPurchaseByIdService
+    getPurchaseByIdService,
+    getProductsPurchasedFromSupplierService
 };
 

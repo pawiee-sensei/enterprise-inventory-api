@@ -12,6 +12,7 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import Categories from "./pages/admin/Categories";
 import Suppliers from "./pages/admin/Suppliers";
 import Products from "./pages/admin/Products";
+import Purchases from "./pages/admin/Purchases";
 
 function App() {
   return (
@@ -63,6 +64,15 @@ function App() {
           element={
             <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
               <Products />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/purchases"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.ADMIN]}>
+              <Purchases />
             </ProtectedRoute>
           }
         />

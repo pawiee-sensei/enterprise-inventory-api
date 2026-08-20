@@ -3,7 +3,8 @@ const asyncHandler = require("../utils/asyncHandler");
 const {
     createPurchaseService,
     getAllPurchasesService,
-    getPurchaseByIdService
+    getPurchaseByIdService,
+    getProductsPurchasedFromSupplierService
 } = require("../services/purchaseService");
 const { get } = require("../routes/productRoutes");
 
@@ -37,9 +38,19 @@ const getPurchaseById = asyncHandler(async(req, res) => {
     });
 });
 
+const getProductsPurchasedFromSupplier = asyncHandler(async(req, res) => {
+    const products = await getProductsPurchasedFromSupplierService(req.params.supplierId);
+
+    res.status(200).json({
+        success: true,
+        data: products
+    });
+});
+
 
 module.exports = {
     createPurchase,
     getAllPurchases,
-    getPurchaseById
+    getPurchaseById,
+    getProductsPurchasedFromSupplier
 };

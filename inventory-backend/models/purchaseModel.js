@@ -133,6 +133,27 @@ const createPurchaseItem = async(
     return subtotal;
 };
 
+const findProductsPurchasedFromSupplier = async (supplierId) => {
+    const [rows] = await pool.execute(
+        `
+        SELECT DISTINCT
+            p.id,
+            p.name,
+            p.cost_price
+        FROM purchase_items pi
+        INNER JOIN purchases pu
+            ON pi.purchase_id = pu.id
+        INNER JOIN products p
+            ON pi.product_id = p.id
+        WHERE pu.supplier_id = ?
+        ORDER BY p.name
+        `,
+        [supplierId]
+    );
+
+    return rows;
+};
+
 
 module.exports = {
     findAllPurchases,
@@ -140,4 +161,5 @@ module.exports = {
     findPurchaseItems,
     createPurchase,
     createPurchaseItem,
+    findProductsPurchasedFromSupplier
 };

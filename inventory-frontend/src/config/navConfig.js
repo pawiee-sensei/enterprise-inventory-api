@@ -17,6 +17,11 @@ export const navItems = [
   roles: [ROLES.ADMIN], 
   },
   {
+  label: "Purchases",
+  path: "/admin/purchases",
+  roles: [ROLES.ADMIN],
+  },
+  {
     label: "Categories",
     path: "/admin/categories",
     roles: [ROLES.ADMIN],
