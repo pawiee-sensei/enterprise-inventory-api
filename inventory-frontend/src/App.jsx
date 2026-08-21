@@ -13,7 +13,9 @@ import Categories from "./pages/admin/Categories";
 import Suppliers from "./pages/admin/Suppliers";
 import Products from "./pages/admin/Products";
 import Purchases from "./pages/admin/Purchases";
+
 import Sales from "./pages/Sales";
+import Inventory from "./pages/Inventory";
 
 function App() {
   return (
@@ -83,6 +85,15 @@ function App() {
           element={
             <ProtectedRoute>
               <Sales />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/inventory"
+          element={
+            <ProtectedRoute>
+              <Inventory />
             </ProtectedRoute>
           }
         />

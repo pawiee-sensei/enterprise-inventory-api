@@ -4,7 +4,8 @@ const {
     getAllInventory,
     getLowStockInventory,
     getInventoryLogsByProductId,
-    getInventorySummary
+    getInventorySummary,
+    getAllInventoryLogs
 } = require("../controllers/inventoryQueryController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -31,6 +32,13 @@ router.get(
 );
 
 router.get(
+    "/logs",
+    authMiddleware,
+    autorize(1, 2),
+    getAllInventoryLogs
+);
+
+router.get(
     "/:productId/logs",
     authMiddleware,
     autorize(1, 2),
@@ -44,5 +52,9 @@ router.get(
     autorize(1, 2),
     getInventorySummary
 );
+
+
+
+
 
 module.exports = router;

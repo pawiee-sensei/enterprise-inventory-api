@@ -130,10 +130,60 @@ const getInventorySummary = async() => {
     return rows[0];
 };
 
+const findAllInventoryLogs = async ({ limit, offset, productId }) => {
+    let query = `
+        SELECT
+            il.id,
+            il.product_id,
+            p.name AS product_name,
+            CONCAT(u.first_name, ' ', u.last_name) AS user_name,
+            il.movement_type,
+            il.quantity,
+            il.previous_stock,
+            il.new_stock,
+            il.reference_type,
+            il.reference_id,
+            il.remarks,
+            il.created_at
+        FROM inventory_logs il
+        INNER JOIN products p ON il.product_id = p.id
+        INNER JOIN users u ON il.user_id = u.id
+    `;
+
+    const params = [];
+
+    // productId is optional
+    if (productId) {
+        query += ` WHERE il.product_id = ? `;
+        params.push(productId);
+    }
+
+    // limit/offset are pre-validated numbers, safe to interpolate directly
+    query += ` ORDER BY il.id DESC LIMIT ${limit} OFFSET ${offset} `;
+
+    const [rows] = await pool.execute(query, params);
+    return rows;
+};
+
+const countInventoryLogs = async (productId) => {
+    let query = `SELECT COUNT(*) AS total FROM inventory_logs`;
+    const params = [];
+
+    if (productId) {
+        query += ` WHERE product_id = ?`;
+        params.push(productId);
+    }
+
+    const [rows] = await pool.execute(query, params);
+    return rows[0].total;
+};
+
 module.exports = {
     findAllInventory,
     findLowStockInventory,
     findInventoryLogsByProductId,
     findProductById,
-    getInventorySummary
+    getInventorySummary,
+    findAllInventoryLogs,
+    countInventoryLogs
 };

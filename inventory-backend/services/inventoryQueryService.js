@@ -5,7 +5,9 @@ const {
     findLowStockInventory,
     findInventoryLogsByProductId,
     findProductById,
-    getInventorySummary
+    getInventorySummary,
+    findAllInventoryLogs,
+    countInventoryLogs
 } = require("../models/inventoryQueryModel");
 
 const AppError = require("../utils/AppError");
@@ -41,7 +43,26 @@ const getInventorySummaryService = async () => {
     return summary;
 };
 
+const getAllInventoryLogsService = async ({ page = 1, limit = 20, productId }) => {
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+    const offset = (pageNum - 1) * limitNum;
 
+    const [logs, total] = await Promise.all([
+        findAllInventoryLogs({ limit: limitNum, offset, productId }),
+        countInventoryLogs(productId)
+    ]);
+
+    return {
+        logs,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum)
+        }
+    };
+};
 
 
 
@@ -49,5 +70,6 @@ module.exports = {
     getAllInventoryService,
     getLowStockInventoryService,
     getInventoryLogsByProductIdService,
-    getInventorySummaryService
+    getInventorySummaryService,
+    getAllInventoryLogsService
 };

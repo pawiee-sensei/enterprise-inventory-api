@@ -36,4 +36,9 @@ export const navItems = [
   path: "/admin/suppliers",
   roles: [ROLES.ADMIN],
   },
+  {
+    label: "Inventory Log",
+    path: "/inventory",
+    roles: [ROLES.ADMIN, ROLES.STAFF],
+  },
 ];
