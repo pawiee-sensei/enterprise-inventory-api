@@ -1,5 +1,7 @@
     const pool = require("../database/db");
 
+    const { findReturnedQuantitiesByPurchaseId } = require("../models/purchaseReturnModel");
+
     const {
         createPurchase,
         createPurchaseItem,
@@ -158,8 +160,17 @@ const getPurchaseByIdService = async (id) => {
     }
 
     const items = await findPurchaseItems(id);
+    const returnedQuantities = await findReturnedQuantitiesByPurchaseId(id);
 
-    return { ...purchase, items };
+    const itemsWithReturns = items.map((item) => {
+        const match = returnedQuantities.find((r) => r.product_id === item.product_id);
+        return {
+            ...item,
+            returned_quantity: match ? match.returned_quantity : 0,
+        };
+    });
+
+    return { ...purchase, items: itemsWithReturns };
 };
 
 const getProductsPurchasedFromSupplierService = async (supplierId) => {

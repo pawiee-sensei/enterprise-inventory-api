@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { getAllSales, getSaleById, createSale } from "../api/saleApi";
 import { getAllProducts } from "../api/productApi";
+import { formatDate } from "../utils/formatDate";
 
 function Sales() {
   const [sales, setSales] = useState([]);
@@ -210,7 +211,7 @@ function Sales() {
               <tr key={s.id}>
                 <td>{s.id}</td>
                 <td>{s.created_by}</td>
-                <td>{s.sale_date}</td>
+                <td>{formatDate(s.sale_date)}</td>
                 <td>{s.total_amount}</td>
                 <td>{s.status}</td>
                 <td>

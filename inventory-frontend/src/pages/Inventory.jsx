@@ -6,6 +6,8 @@ import {
   getAllInventoryLogs,
 } from "../api/inventoryApi";
 
+import { formatDate } from "../utils/formatDate";
+
 function Inventory() {
   const [summary, setSummary] = useState(null);
   const [inventory, setInventory] = useState([]);
@@ -188,7 +190,7 @@ function Inventory() {
                   <td>{log.reference_type}</td>
                   <td>{log.user_name}</td>
                   <td>{log.remarks}</td>
-                  <td>{log.created_at}</td>
+                  <td>{formatDate(log.created_at)}</td>
                 </tr>
               ))}
             </tbody>

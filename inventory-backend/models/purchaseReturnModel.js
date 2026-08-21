@@ -114,10 +114,30 @@ const findPurchaseItemForReturn = async (
     return rows[0];
 };
 
+const findReturnedQuantitiesByPurchaseId = async (purchaseId) => {
+    const [rows] = await pool.execute(
+        `
+        SELECT
+            pri.product_id,
+            SUM(pri.quantity) AS returned_quantity
+        FROM purchase_return_items pri
+        INNER JOIN purchase_returns pr
+            ON pri.purchase_return_id = pr.id
+        WHERE pr.purchase_id = ?
+        GROUP BY pri.product_id
+        `,
+        [purchaseId]
+    );
+
+    return rows;
+};
+
 
 module.exports = {
     createPurchaseReturn,
     createPurchaseReturnItem,
     findPurchaseForReturn,
-    findPurchaseItemForReturn
+    findPurchaseItemForReturn,
+    findReturnedQuantitiesByPurchaseId
+
 };

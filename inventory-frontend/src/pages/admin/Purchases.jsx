@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { getAllPurchases, getPurchaseById, createPurchase, getProductsPurchasedFromSupplier } from "../../api/purchaseApi";
+import { getAllPurchases, getPurchaseById, createPurchase, getProductsPurchasedFromSupplier, createPurchaseReturn } from "../../api/purchaseApi";
 import { getAllSuppliers } from "../../api/supplierApi";
 import { getAllProducts } from "../../api/productApi";
+import { formatDate } from "../../utils/formatDate";
 
 function Purchases() {
   const [purchases, setPurchases] = useState([]);
@@ -10,6 +11,8 @@ function Purchases() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [returnReason, setReturnReason] = useState("");
+  const [returnQuantities, setReturnQuantities] = useState({});
   const [supplierId, setSupplierId] = useState("");
   const [historyProducts, setHistoryProducts] = useState([]);
   const [search, setSearch] = useState("");
@@ -59,6 +62,37 @@ function Purchases() {
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleReturnQuantityChange = (itemId, value) => {
+  setReturnQuantities({ ...returnQuantities, [itemId]: value });
+};
+
+const handleSubmitReturn = async (e) => {
+  e.preventDefault();
+  setError("");
+
+  const items = selectedPurchase.items
+    .filter((item) => Number(returnQuantities[item.id]) > 0)
+    .map((item) => ({
+      product_id: item.product_id,
+      quantity: Number(returnQuantities[item.id]),
+    }));
+
+  if (items.length === 0) {
+    setError("Enter a quantity for at least one item to return");
+    return;
+  }
+
+  try {
+    await createPurchaseReturn(selectedPurchase.id, { reason: returnReason, items });
+    setReturnReason("");
+    setReturnQuantities({});
+    setSelectedPurchase(null);
+    loadAll();
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to create return");
+  }
+};
 
   const handleAddProduct = (prod) => {
     if (isAlreadyAdded(prod.id)) return;
@@ -268,7 +302,7 @@ function Purchases() {
                 <td>{p.id}</td>
                 <td>{p.supplier}</td>
                 <td>{p.created_by}</td>
-                <td>{p.purchase_date}</td>
+                <td>{formatDate(p.purchase_date)}</td>
                 <td>{p.total_amount}</td>
                 <td>{p.status}</td>
                 <td>
@@ -280,32 +314,62 @@ function Purchases() {
         </table>
       )}
 
-      {selectedPurchase && (
-        <div style={{ border: "1px solid #ccc", padding: "10px", marginTop: "10px" }}>
-          <h3>Purchase #{selectedPurchase.id} details</h3>
-          <table border="1" cellPadding="8">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Unit Cost</th>
-                <th>Subtotal</th>
+{selectedPurchase && (
+  <div style={{ border: "1px solid #ccc", padding: "10px", marginTop: "10px" }}>
+    <h3>Purchase #{selectedPurchase.id} details</h3>
+    <table border="1" cellPadding="8">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Quantity</th>
+            <th>Unit Cost</th>
+            <th>Subtotal</th>
+            <th>Returned</th>
+            <th>Remaining</th>
+            <th>Return Qty</th>
+          </tr>
+        </thead>
+        <tbody>
+          {selectedPurchase.items.map((item) => {
+            const remaining = item.quantity - item.returned_quantity;
+            return (
+              <tr key={item.id}>
+                <td>{item.product}</td>
+                <td>{item.quantity}</td>
+                <td>{item.unit_cost}</td>
+                <td>{item.subtotal}</td>
+                <td>{item.returned_quantity}</td>
+                <td>{remaining}</td>
+                <td>
+                  <input
+                    type="number"
+                    min="0"
+                    max={remaining}
+                    value={returnQuantities[item.id] || ""}
+                    onChange={(e) => handleReturnQuantityChange(item.id, e.target.value)}
+                    style={{ width: "60px" }}
+                    disabled={remaining <= 0}
+                  />
+                </td>
               </tr>
-            </thead>
-            <tbody>
-              {selectedPurchase.items.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.product}</td>
-                  <td>{item.quantity}</td>
-                  <td>{item.unit_cost}</td>
-                  <td>{item.subtotal}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <button onClick={() => setSelectedPurchase(null)}>Close</button>
-        </div>
-      )}
+            );
+          })}
+        </tbody>
+    </table>
+
+    <form onSubmit={handleSubmitReturn}>
+      <input
+        placeholder="Reason for return"
+        value={returnReason}
+        onChange={(e) => setReturnReason(e.target.value)}
+        required
+      />
+      <button type="submit">Submit Return</button>
+    </form>
+
+    <button onClick={() => setSelectedPurchase(null)}>Close</button>
+  </div>
+)}
     </div>
   );
 }

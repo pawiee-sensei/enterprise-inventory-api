@@ -53,6 +53,7 @@ const findPurchaseItems = async(purchaseId) => {
     const [rows] = await pool.execute(
         `SELECT
             pi.id,
+            p.id AS product_id,
             p.name AS product,
             pi.quantity,
             pi.unit_cost,

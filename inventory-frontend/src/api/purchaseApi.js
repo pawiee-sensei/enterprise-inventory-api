@@ -19,3 +19,8 @@ export const getProductsPurchasedFromSupplier = async (supplierId) => {
   const response = await axiosClient.get(`/purchases/supplier/${supplierId}/products`);
   return response.data;
 };
+
+export const createPurchaseReturn = async (purchaseId, returnData) => {
+  const response = await axiosClient.post(`/purchases/${purchaseId}/return`, returnData);
+  return response.data;
+};
