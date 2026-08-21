@@ -8,6 +8,8 @@ import {
 import { getAllCategories } from "../../api/categoryApi";
 import { getAllSuppliers } from "../../api/supplierApi";
 
+import { createInventoryAdjustment } from "../../api/adjustmentApi";
+
 const emptyForm = {
     sku: "",
     name: "",
@@ -28,6 +30,9 @@ function Products() {
     const [form, setForm] = useState(emptyForm);
     const [editingId, setEditingId] = useState(null);
     const [error, setError] = useState("");
+
+    const [adjustingProduct, setAdjustingProduct] = useState(null);
+    const [adjustForm, setAdjustForm] = useState({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
 
     useEffect(() => {
         loadAll();
@@ -51,6 +56,33 @@ function Products() {
         setLoading(false);
         }
     };
+
+    const handleAdjustClick = (prod) => {
+  setAdjustingProduct(prod);
+  setAdjustForm({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
+};
+
+const handleAdjustChange = (e) => {
+  setAdjustForm({ ...adjustForm, [e.target.name]: e.target.value });
+};
+
+const handleAdjustSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+
+  try {
+    await createInventoryAdjustment({
+      product_id: adjustingProduct.id,
+      type: adjustForm.type,
+      quantity: Number(adjustForm.quantity),
+      reason: adjustForm.reason,
+    });
+    setAdjustingProduct(null);
+    loadAll(); // refresh product list to show updated stock
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to record adjustment");
+  }
+};
 
     const handleChange = (e) => {
         setForm({ ...form, [e.target.name]: e.target.value });
@@ -204,13 +236,50 @@ function Products() {
                         <td>{prod.stock}</td>
                         <td>{prod.category}</td>
                         <td>{prod.supplier}</td>
-                        <td>
+                            <td>
                             <button onClick={() => handleEditClick(prod)}>Edit</button>
                             <button onClick={() => handleDelete(prod.id)}>Delete</button>
-                        </td>
+                            <button onClick={() => handleAdjustClick(prod)}>Adjust Stock</button>
+                            </td>
                         </tr>
                     ))}
                 </tbody>
+
+                {adjustingProduct && (
+  <div style={{ border: "1px solid #ccc", padding: "10px", marginTop: "10px" }}>
+    <h3>Adjust stock — {adjustingProduct.name} (current: {adjustingProduct.stock})</h3>
+    <form onSubmit={handleAdjustSubmit}>
+      <select name="type" value={adjustForm.type} onChange={handleAdjustChange}>
+        <option value="ADJUSTMENT_IN">Add stock (found/correction up)</option>
+        <option value="ADJUSTMENT_OUT">Remove stock (damage/loss/correction down)</option>
+      </select>
+
+      <input
+        name="quantity"
+        type="number"
+        min="1"
+        placeholder="Quantity"
+        value={adjustForm.quantity}
+        onChange={handleAdjustChange}
+        required
+      />
+
+      <input
+        name="reason"
+        placeholder="Reason (required)"
+        value={adjustForm.reason}
+        onChange={handleAdjustChange}
+        required
+      />
+
+      <button type="submit">Submit Adjustment</button>
+      <button type="button" onClick={() => setAdjustingProduct(null)}>
+        Cancel
+      </button>
+    </form>
+  </div>
+)}
+
             </table>
         )}
         </div>

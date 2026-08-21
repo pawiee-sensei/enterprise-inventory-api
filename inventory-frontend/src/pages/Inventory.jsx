@@ -6,6 +6,7 @@ import {
   getAllInventoryLogs,
 } from "../api/inventoryApi";
 
+
 import { formatDate } from "../utils/formatDate";
 
 function Inventory() {
