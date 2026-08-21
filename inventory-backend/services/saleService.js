@@ -1,5 +1,7 @@
 const pool = require("../database/db");
 
+const { findReturnedQuantitiesBySaleId } = require("../models/saleReturnModel");
+
 const {
     createSale,
     createSaleItem,
@@ -153,8 +155,17 @@ const getSaleByIdService = async (id) => {
     }
 
     const items = await findSaleItems(id);
+    const returnedQuantities = await findReturnedQuantitiesBySaleId(id);
 
-    return { ...sale, items };
+    const itemsWithReturns = items.map((item) => {
+        const match = returnedQuantities.find((r) => r.product_id === item.product_id);
+        return {
+            ...item,
+            returned_quantity: match ? match.returned_quantity : 0,
+        };
+    });
+
+    return { ...sale, items: itemsWithReturns };
 };
 
 module.exports = {

@@ -14,3 +14,8 @@ export const createSale = async (saleData) => {
   const response = await axiosClient.post("/sales", saleData);
   return response.data;
 };
+
+export const createSaleReturn = async (saleId, returnData) => {
+  const response = await axiosClient.post(`/sale-returns/${saleId}`, returnData);
+  return response.data;
+};

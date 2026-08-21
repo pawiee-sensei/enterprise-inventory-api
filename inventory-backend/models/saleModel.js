@@ -68,7 +68,9 @@ const createSaleItem = async(
         ]
     );
 };
-
+// Find all sales
+// Returns: sales.id, sales.created_by, sales.sale_date, sales.total_amount, sales.status from sales
+// and users.first_name, users.last_name from users
 const findAllSales = async () => {
     const [rows] = await pool.execute(
         `SELECT
@@ -88,6 +90,10 @@ const findAllSales = async () => {
     return rows;
 };
 
+// Find one sale
+// saleId = sales.id
+// Returns: sales.id, sales.created_by, sales.sale_date, sales.total_amount, sales.status from sales
+//  and users.first_name, users.last_name from users
 const findSaleById = async (id) => {
     const [rows] = await pool.execute(
         `SELECT
@@ -109,10 +115,14 @@ const findSaleById = async (id) => {
     return rows[0];
 };
 
+// Find all products inside one sale.
+// saleId = sales.id
+// Returns: sale_items.product_id and sale_items.quantity
 const findSaleItems = async (saleId) => {
     const [rows] = await pool.execute(
         `SELECT
             si.id,
+            p.id AS product_id,
             p.name AS product,
             si.quantity,
             si.unit_price,
@@ -130,10 +140,12 @@ const findSaleItems = async (saleId) => {
     return rows;
 };
 
+
+
 module.exports = {
     createSale,
     createSaleItem,
     findAllSales,
     findSaleById,
-    findSaleItems
+    findSaleItems,
 };

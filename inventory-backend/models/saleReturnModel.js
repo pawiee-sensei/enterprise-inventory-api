@@ -137,11 +137,30 @@ const findReturnQuantity = async(
     return rows[0].returned_quantity;
 };
 
+const findReturnedQuantitiesBySaleId = async (saleId) => {
+    const [rows] = await pool.execute(
+        `
+        SELECT
+            sri.product_id,
+            SUM(sri.quantity) AS returned_quantity
+        FROM sale_return_items sri
+        INNER JOIN sale_returns sr
+            ON sri.sale_return_id = sr.id
+        WHERE sr.sale_id = ?
+        GROUP BY sri.product_id
+        `,
+        [saleId]
+    );
+
+    return rows;
+};
+
 module.exports = {
     createSaleReturn,
     createSaleReturnItem,
     findSaleForReturn,
     findSaleItemForReturn,
-    findReturnQuantity
+    findReturnQuantity,
+    findReturnedQuantitiesBySaleId
 };
 
