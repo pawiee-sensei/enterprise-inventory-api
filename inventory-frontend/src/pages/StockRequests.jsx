@@ -131,6 +131,8 @@ function StockRequests() {
     <div>
       <h1>Stock Adjustment Requests</h1>
 
+    {!isAdmin && (
+
       <div style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "20px" }}>
         <h3>Submit a request</h3>
 
@@ -208,6 +210,7 @@ function StockRequests() {
 
         {success && <p style={{ color: "green" }}>{success}</p>}
       </div>
+    )}
 
       {error && <p style={{ color: "red" }}>{error}</p>}
 

@@ -3,11 +3,11 @@ import Sidebar from "./Sidebar";
 
 function Layout() {
   return (
-    <div style={{ display: "flex" }}>
+    <div className="flex min-h-screen bg-surface text-text-primary">
       <Sidebar />
-      <div style={{ padding: "20px", flex: 1 }}>
+      <main className="min-w-0 flex-1 px-4 pb-6 pt-32 sm:px-6 md:pt-6 lg:px-8">
         <Outlet />
-      </div>
+      </main>
     </div>
   );
 }
