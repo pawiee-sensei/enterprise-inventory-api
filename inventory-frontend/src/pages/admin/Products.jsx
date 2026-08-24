@@ -173,6 +173,8 @@ const handleAdjustSubmit = async (e) => {
             placeholder="Stock"
             value={form.stock}
             onChange={handleChange}
+            disabled={!!editingId}
+            title={editingId ? "Use 'Adjust Stock' to change this" : ""}
             />
             <input
             name="minimum_stock"

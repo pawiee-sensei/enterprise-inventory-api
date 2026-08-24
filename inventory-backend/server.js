@@ -23,6 +23,7 @@ const purchaseReturnRoutes = require("./routes/purchaseReturnRoutes");
 const saleRoutes = require("./routes/saleRoutes");
 const saleReturnRoutes = require("./routes/saleReturnRoutes");
 const inventoryAdjustmentRoutes = require("./routes/inventoryAdjustmentRoutes");
+const stockRequestRoutes = require("./routes/stockRequestRoutes");
 
 const getAllInventory = require("./routes/inventoryQueryRoutes");
 
@@ -94,7 +95,9 @@ app.use("/api/sales", saleRoutes);
 app.use("/api/sale-returns", saleReturnRoutes);
 app.use("/api/inventory-adjustments", inventoryAdjustmentRoutes);
 
+
 app.use("/api/inventory", getAllInventory);
+app.use("/api/stock-requests", stockRequestRoutes);
 
 app.use(notFoundMiddleware);
 app.use(errorMiddleware)

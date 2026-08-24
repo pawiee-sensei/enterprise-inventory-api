@@ -10,6 +10,6 @@ const validationSaleReturn = require("../middleware/validateSaleReturn");
 
 const router = express.Router();
 
-router.post("/:id", authMiddleware, authorize(1,2), validationSaleReturn, createSaleReturn);
+router.post("/:id", authMiddleware, authorize(1), validationSaleReturn, createSaleReturn);
 
 module.exports = router;

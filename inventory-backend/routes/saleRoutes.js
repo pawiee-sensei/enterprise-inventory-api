@@ -12,7 +12,7 @@ const validationSale = require("../middleware/validateSale");
 
 const router = express.Router();
 
-router.post("/", authMiddleware, authorize(1), validationSale, createSale);
+router.post("/", authMiddleware, authorize(1,2), validationSale, createSale);
 router.get("/", authMiddleware, authorize(1,2), getAllSales);
 router.get("/:id", authMiddleware, authorize(1,2), getSaleById);
 

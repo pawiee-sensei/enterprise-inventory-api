@@ -8,14 +8,20 @@ import Register from "./pages/Register";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 
+// Admin Pages
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import Categories from "./pages/admin/Categories";
 import Suppliers from "./pages/admin/Suppliers";
 import Products from "./pages/admin/Products";
 import Purchases from "./pages/admin/Purchases";
 
+// Staff and Admin Pages
 import Sales from "./pages/Sales";
 import Inventory from "./pages/Inventory";
+import StockRequests from "./pages/StockRequests";
+
+// Staff Product Page
+import ProductsView from "./pages/ProductsView";
 
 function App() {
   return (
@@ -94,6 +100,24 @@ function App() {
           element={
             <ProtectedRoute>
               <Inventory />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/products"
+          element={
+            <ProtectedRoute allowedRoles={[ROLES.STAFF]}>
+              <ProductsView />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/stock-requests"
+          element={
+            <ProtectedRoute>
+              <StockRequests />
             </ProtectedRoute>
           }
         />
