@@ -3,7 +3,8 @@ const asyncHandler = require("../utils/asyncHandler");
 const {
     createSaleService,
     getAllSalesService,
-    getSaleByIdService
+    getSaleByIdService,
+    getTopSellingProductsService
 } = require("../services/saleService");
 
 const createSale = asyncHandler(async (req, res) => {
@@ -35,8 +36,19 @@ const getSaleById = asyncHandler(async (req, res) => {
     });
 });
 
+const getTopSellingProducts = asyncHandler(async (req, res) => {
+    const { limit } = req.query;
+    const products = await getTopSellingProductsService(limit || 5);
+
+    res.status(200).json({
+        success: true,
+        data: products,
+    });
+});
+
 module.exports = {
     createSale,
     getAllSales,
-    getSaleById
+    getSaleById,
+    getTopSellingProducts
 };

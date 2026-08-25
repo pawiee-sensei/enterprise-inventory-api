@@ -19,3 +19,8 @@ export const createSaleReturn = async (saleId, returnData) => {
   const response = await axiosClient.post(`/sale-returns/${saleId}`, returnData);
   return response.data;
 };
+
+export const getTopSellingProducts = async (limit = 5) => {
+  const response = await axiosClient.get(`/sales/insights/top-products?limit=${limit}`);
+  return response.data;
+};

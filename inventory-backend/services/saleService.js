@@ -7,7 +7,8 @@ const {
     createSaleItem,
     findAllSales,
     findSaleById,
-    findSaleItems
+    findSaleItems,
+    findTopSellingProducts
 } = require("../models/saleModel");
 
 const {
@@ -168,8 +169,13 @@ const getSaleByIdService = async (id) => {
     return { ...sale, items: itemsWithReturns };
 };
 
+const getTopSellingProductsService = async (limit = 5) => {
+    return await findTopSellingProducts(limit);
+};
+
 module.exports = {
     createSaleService,
     getAllSalesService,
-    getSaleByIdService
+    getSaleByIdService,
+    getTopSellingProductsService
 };

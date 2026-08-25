@@ -140,6 +140,25 @@ const findSaleItems = async (saleId) => {
     return rows;
 };
 
+const findTopSellingProducts = async (limit) => {
+    const [rows] = await pool.execute(
+        `
+        SELECT
+            p.id,
+            p.name,
+            SUM(si.quantity) AS total_quantity,
+            SUM(si.subtotal) AS total_revenue
+        FROM sale_items si
+        INNER JOIN products p ON si.product_id = p.id
+        GROUP BY p.id, p.name
+        ORDER BY total_quantity DESC
+        LIMIT ${Number(limit)}
+        `
+    );
+
+    return rows;
+};
+
 
 
 module.exports = {
@@ -148,4 +167,5 @@ module.exports = {
     findAllSales,
     findSaleById,
     findSaleItems,
+    findTopSellingProducts
 };
