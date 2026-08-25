@@ -1,291 +1,319 @@
 import { useState, useEffect } from "react";
 import {
-    getAllProducts,
-    createProduct,
-    updateProduct,
-    deleteProduct,
+  getAllProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
 } from "../../api/productApi";
 import { getAllCategories } from "../../api/categoryApi";
 import { getAllSuppliers } from "../../api/supplierApi";
-
 import { createInventoryAdjustment } from "../../api/adjustmentApi";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Card, CardHeader } from "../../components/ui/Card";
+import { Table, TableHead, Th, TableBody, Tr, Td } from "../../components/ui/Table";
+import { Button } from "../../components/ui/Button";
+import { Input, Select } from "../../components/ui/Input";
+import { Badge } from "../../components/ui/Badge";
+import { Modal } from "../../components/ui/Modal";
 
 const emptyForm = {
-    sku: "",
-    name: "",
-    description: "",
-    cost_price: "",
-    selling_price: "",
-    stock: "",
-    minimum_stock: "",
-    category_id: "",
-    supplier_id: "",
+  sku: "",
+  name: "",
+  description: "",
+  cost_price: "",
+  selling_price: "",
+  stock: "",
+  minimum_stock: "",
+  category_id: "",
+  supplier_id: "",
 };
 
 function Products() {
-    const [products, setProducts] = useState([]);
-    const [categories, setCategories] = useState([]);
-    const [suppliers, setSuppliers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [form, setForm] = useState(emptyForm);
-    const [editingId, setEditingId] = useState(null);
-    const [error, setError] = useState("");
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [suppliers, setSuppliers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState(null);
+  const [error, setError] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    const [adjustingProduct, setAdjustingProduct] = useState(null);
-    const [adjustForm, setAdjustForm] = useState({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
+  const [adjustingProduct, setAdjustingProduct] = useState(null);
+  const [adjustForm, setAdjustForm] = useState({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
 
-    useEffect(() => {
-        loadAll();
-    }, []);
+  useEffect(() => {
+    loadAll();
+  }, []);
 
-  // fetch products, categories, AND suppliers together
-    const loadAll = async () => {
+  const loadAll = async () => {
     setLoading(true);
-        try {
-        const [productsRes, categoriesRes, suppliersRes] = await Promise.all([
-            getAllProducts(),
-            getAllCategories(),
-            getAllSuppliers(),
-        ]);
-        setProducts(productsRes.data);
-        setCategories(categoriesRes.data);
-        setSuppliers(suppliersRes.data);
-        } catch (err) {
-        setError("Failed to load data: " + err.message);
-        } finally {
-        setLoading(false);
-        }
-    };
+    try {
+      const [productsRes, categoriesRes, suppliersRes] = await Promise.all([
+        getAllProducts(),
+        getAllCategories(),
+        getAllSuppliers(),
+      ]);
+      setProducts(productsRes.data);
+      setCategories(categoriesRes.data);
+      setSuppliers(suppliersRes.data);
+    } catch (err) {
+      setError("Failed to load data: " + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    const handleAdjustClick = (prod) => {
-  setAdjustingProduct(prod);
-  setAdjustForm({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
-};
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-const handleAdjustChange = (e) => {
-  setAdjustForm({ ...adjustForm, [e.target.name]: e.target.value });
-};
-
-const handleAdjustSubmit = async (e) => {
+const handleSubmit = async (e) => {
   e.preventDefault();
   setError("");
-
   try {
-    await createInventoryAdjustment({
-      product_id: adjustingProduct.id,
-      type: adjustForm.type,
-      quantity: Number(adjustForm.quantity),
-      reason: adjustForm.reason,
-    });
-    setAdjustingProduct(null);
-    loadAll(); // refresh product list to show updated stock
+    const payload = { ...form, is_active: 1 };
+    if (editingId) {
+      await updateProduct(editingId, payload);
+      setEditingId(null);
+    } else {
+      await createProduct(payload);
+    }
+    setForm(emptyForm);
+    setIsModalOpen(false);
+    loadAll();
   } catch (err) {
-    setError(err.response?.data?.message || "Failed to record adjustment");
+    setError(err.response?.data?.message || "Failed to save product");
   }
 };
 
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
+const handleEditClick = (prod) => {
+  setEditingId(prod.id);
+  setForm({
+    sku: prod.sku || "",
+    name: prod.name || "",
+    description: prod.description || "",
+    cost_price: prod.cost_price || "",
+    selling_price: prod.selling_price || "",
+    stock: prod.stock || "",
+    minimum_stock: prod.minimum_stock || "",
+    category_id: prod.category_id || "",
+    supplier_id: prod.supplier_id || "",
+  });
+  setIsModalOpen(true);
+};
 
-    const handleSubmit = async (e) => {
+const handleAddClick = () => {
+  setEditingId(null);
+  setForm(emptyForm);
+  setIsModalOpen(true);
+};
+
+const handleCancelEdit = () => {
+  setEditingId(null);
+  setForm(emptyForm);
+  setIsModalOpen(false);
+};
+
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this product?")) return;
+    try {
+      await deleteProduct(id);
+      loadAll();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete product");
+    }
+  };
+
+  const handleAdjustClick = (prod) => {
+    setAdjustingProduct(prod);
+    setAdjustForm({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
+  };
+
+  const handleAdjustChange = (e) => {
+    setAdjustForm({ ...adjustForm, [e.target.name]: e.target.value });
+  };
+
+  const handleAdjustSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
-        const payload = { ...form, is_active: 1 };
-        if (editingId) {
-        await updateProduct(editingId, payload);
-        setEditingId(null);
-        } else {
-        await createProduct(payload);
-        }
-        setForm(emptyForm);
-        loadAll();
+      await createInventoryAdjustment({
+        product_id: adjustingProduct.id,
+        type: adjustForm.type,
+        quantity: Number(adjustForm.quantity),
+        reason: adjustForm.reason,
+      });
+      setAdjustingProduct(null);
+      loadAll();
     } catch (err) {
-        setError(err.response?.data?.message || "Failed to save product");
+      setError(err.response?.data?.message || "Failed to record adjustment");
     }
-    };
+  };
 
-    const handleEditClick = (prod) => {
-    setEditingId(prod.id);
-    setForm({
-        sku: prod.sku || "",
-        name: prod.name || "",
-        description: prod.description || "",
-        cost_price: prod.cost_price || "",
-        selling_price: prod.selling_price || "",
-        stock: prod.stock || "",
-        minimum_stock: prod.minimum_stock || "",
-        category_id: prod.category_id || "",
-        supplier_id: prod.supplier_id || "",
-    });
-    };
-
-    const handleCancelEdit = () => {
-        setEditingId(null);
-        setForm(emptyForm);
-    };
-
-    const handleDelete = async (id) => {
-        if (!window.confirm("Delete this product?")) return;
-        try {
-        await deleteProduct(id);
-        loadAll();
-        } catch (err) {
-        setError(err.response?.data?.message || "Failed to delete product");
-        }
-    };
-
-
-
-    return (
-        <div>
-        <h1>Products</h1>
-
-        <form onSubmit={handleSubmit}>
-            <input name="sku" placeholder="SKU" value={form.sku} onChange={handleChange} />
-            <input name="name" placeholder="Name" value={form.name} onChange={handleChange} />
-            <input
-                name="description"
-                placeholder="Description (optional)"
-                value={form.description}
-                onChange={handleChange}
-            />
-            <input
-            name="cost_price"
-            type="number"
-            step="0.01"
-            placeholder="Cost price"
-            value={form.cost_price}
-            onChange={handleChange}
-            />
-            <input
-            name="selling_price"
-            type="number"
-            step="0.01"
-            placeholder="Selling price"
-            value={form.selling_price}
-            onChange={handleChange}
-            />
-            <input
-            name="stock"
-            type="number"
-            placeholder="Stock"
-            value={form.stock}
-            onChange={handleChange}
-            disabled={!!editingId}
-            title={editingId ? "Use 'Adjust Stock' to change this" : ""}
-            />
-            <input
-            name="minimum_stock"
-            type="number"
-            placeholder="Minimum stock"
-            value={form.minimum_stock}
-            onChange={handleChange}
+  return (
+    <div className="mx-auto flex max-w-7xl flex-col gap-6">
+        <PageHeader
+            title="Products"
+            subtitle="Manage your product catalog"
+            action={<Button onClick={handleAddClick}>Add Product</Button>}
             />
 
-            <select name="category_id" value={form.category_id} onChange={handleChange}>
-            <option value="">Select category</option>
-            {categories.map((cat) => (
-                <option key={cat.id} value={cat.id}>
-                {cat.name}
-                </option>
-            ))}
-            </select>
+        <Modal
+  isOpen={isModalOpen}
+  onClose={handleCancelEdit}
+  title={editingId ? "Edit Product" : "Add Product"}
+>
+  <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
+    <Input name="sku" placeholder="SKU" value={form.sku} onChange={handleChange} />
+    <Input name="name" placeholder="Name" value={form.name} onChange={handleChange} />
+    <Input
+      name="description"
+      placeholder="Description (optional)"
+      value={form.description}
+      onChange={handleChange}
+      className="sm:col-span-2"
+    />
+    <Input
+      name="cost_price"
+      type="number"
+      step="0.01"
+      placeholder="Cost price"
+      value={form.cost_price}
+      onChange={handleChange}
+    />
+    <Input
+      name="selling_price"
+      type="number"
+      step="0.01"
+      placeholder="Selling price"
+      value={form.selling_price}
+      onChange={handleChange}
+    />
+    <Input
+      name="stock"
+      type="number"
+      placeholder="Stock"
+      value={form.stock}
+      onChange={handleChange}
+      disabled={!!editingId}
+      title={editingId ? "Use 'Adjust Stock' to change this" : ""}
+    />
+    <Input
+      name="minimum_stock"
+      type="number"
+      placeholder="Minimum stock"
+      value={form.minimum_stock}
+      onChange={handleChange}
+    />
 
-            <select name="supplier_id" value={form.supplier_id} onChange={handleChange}>
-            <option value="">Select supplier</option>
-            {suppliers.map((sup) => (
-                <option key={sup.id} value={sup.id}>
-                {sup.name}
-                </option>
-            ))}
-            </select>
+    <Select name="category_id" value={form.category_id} onChange={handleChange}>
+      <option value="">Select category</option>
+      {categories.map((cat) => (
+        <option key={cat.id} value={cat.id}>
+          {cat.name}
+        </option>
+      ))}
+    </Select>
 
-            <button type="submit">{editingId ? "Update Product" : "Add Product"}</button>
-            {editingId && (
-            <button type="button" onClick={handleCancelEdit}>
-                Cancel
-            </button>
-            )}
-        </form>
+    <Select name="supplier_id" value={form.supplier_id} onChange={handleChange}>
+      <option value="">Select supplier</option>
+      {suppliers.map((sup) => (
+        <option key={sup.id} value={sup.id}>
+          {sup.name}
+        </option>
+      ))}
+    </Select>
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
-        {loading ? (
-            <p>Loading...</p>
-        ) : (
-            <table border="1" cellPadding="8">
-            <thead>
-                <tr>
-                <th>SKU</th>
-                <th>Name</th>
-                <th>Cost</th>
-                <th>Price</th>
-                <th>Stock</th>
-                <th>Category</th>
-                <th>Supplier</th>
-                <th>Actions</th>
-                </tr>
-            </thead>
-                <tbody>
-                    {products.map((prod) => (
-                        <tr key={prod.id}>
-                        <td>{prod.sku}</td>
-                        <td>{prod.name}</td>
-                        <td>{prod.cost_price}</td>
-                        <td>{prod.selling_price}</td>
-                        <td>{prod.stock}</td>
-                        <td>{prod.category}</td>
-                        <td>{prod.supplier}</td>
-                            <td>
-                            <button onClick={() => handleEditClick(prod)}>Edit</button>
-                            <button onClick={() => handleDelete(prod.id)}>Delete</button>
-                            <button onClick={() => handleAdjustClick(prod)}>Adjust Stock</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-
-                {adjustingProduct && (
-  <div style={{ border: "1px solid #ccc", padding: "10px", marginTop: "10px" }}>
-    <h3>Adjust stock — {adjustingProduct.name} (current: {adjustingProduct.stock})</h3>
-    <form onSubmit={handleAdjustSubmit}>
-      <select name="type" value={adjustForm.type} onChange={handleAdjustChange}>
-        <option value="ADJUSTMENT_IN">Add stock (found/correction up)</option>
-        <option value="ADJUSTMENT_OUT">Remove stock (damage/loss/correction down)</option>
-      </select>
-
-      <input
-        name="quantity"
-        type="number"
-        min="1"
-        placeholder="Quantity"
-        value={adjustForm.quantity}
-        onChange={handleAdjustChange}
-        required
-      />
-
-      <input
-        name="reason"
-        placeholder="Reason (required)"
-        value={adjustForm.reason}
-        onChange={handleAdjustChange}
-        required
-      />
-
-      <button type="submit">Submit Adjustment</button>
-      <button type="button" onClick={() => setAdjustingProduct(null)}>
+    <div className="flex gap-2 sm:col-span-2">
+      <Button type="submit">{editingId ? "Update Product" : "Add Product"}</Button>
+      <Button type="button" variant="secondary" onClick={handleCancelEdit}>
         Cancel
-      </button>
-    </form>
-  </div>
-)}
+      </Button>
+    </div>
+  </form>
+</Modal>
 
-            </table>
-        )}
-        </div>
-    );
+      {error && (
+        <p className="rounded-md bg-danger-bg px-4 py-2 text-sm text-danger">{error}</p>
+      )}
+
+      {loading ? (
+        <p className="text-sm text-text-secondary">Loading...</p>
+      ) : (
+        <Table>
+          <TableHead>
+            <Th>SKU</Th>
+            <Th>Name</Th>
+            <Th align="right">Cost</Th>
+            <Th align="right">Price</Th>
+            <Th align="right">Stock</Th>
+            <Th>Category</Th>
+            <Th>Supplier</Th>
+            <Th align="right">Actions</Th>
+          </TableHead>
+          <TableBody>
+            {products.map((prod) => (
+              <Tr key={prod.id}>
+                <Td className="font-mono tabular-nums text-text-secondary">{prod.sku}</Td>
+                <Td className="font-medium">{prod.name}</Td>
+                <Td align="right" className="font-mono tabular-nums">{prod.cost_price}</Td>
+                <Td align="right" className="font-mono tabular-nums">{prod.selling_price}</Td>
+                <Td align="right">
+                  <span className="font-mono tabular-nums">{prod.stock}</span>
+                  {prod.stock <= prod.minimum_stock && (
+                    <Badge tone="warning" className="ml-2">Low</Badge>
+                  )}
+                </Td>
+                <Td>{prod.category}</Td>
+                <Td>{prod.supplier}</Td>
+                <Td align="right">
+                  <div className="flex justify-end gap-2">
+                    <Button variant="secondary" onClick={() => handleEditClick(prod)}>Edit</Button>
+                    <Button variant="secondary" onClick={() => handleAdjustClick(prod)}>Adjust</Button>
+                    <Button variant="danger" onClick={() => handleDelete(prod.id)}>Delete</Button>
+                  </div>
+                </Td>
+              </Tr>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+
+      {adjustingProduct && (
+        <Card>
+          <CardHeader
+            title={`Adjust stock — ${adjustingProduct.name} (current: ${adjustingProduct.stock})`}
+          />
+          <form onSubmit={handleAdjustSubmit} className="flex flex-wrap items-end gap-3">
+            <Select name="type" value={adjustForm.type} onChange={handleAdjustChange}>
+              <option value="ADJUSTMENT_IN">Add stock (found/correction up)</option>
+              <option value="ADJUSTMENT_OUT">Remove stock (damage/loss/correction down)</option>
+            </Select>
+            <Input
+              name="quantity"
+              type="number"
+              min="1"
+              placeholder="Quantity"
+              value={adjustForm.quantity}
+              onChange={handleAdjustChange}
+              required
+            />
+            <Input
+              name="reason"
+              placeholder="Reason (required)"
+              value={adjustForm.reason}
+              onChange={handleAdjustChange}
+              required
+            />
+            <Button type="submit">Submit</Button>
+            <Button type="button" variant="secondary" onClick={() => setAdjustingProduct(null)}>
+              Cancel
+            </Button>
+          </form>
+        </Card>
+      )}
+    </div>
+  );
 }
 
 export default Products;
