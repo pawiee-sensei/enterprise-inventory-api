@@ -1,6 +1,12 @@
 import { useEffect } from "react";
 
-export function Modal({ isOpen, onClose, title, children }) {
+const sizeClasses = {
+  md: "max-w-2xl",
+  lg: "max-w-4xl",
+  xl: "max-w-6xl",
+};
+
+export function Modal({ isOpen, onClose, title, children, size = "md" }) {
   useEffect(() => {
     const handleEsc = (e) => {
       if (e.key === "Escape") onClose();
@@ -19,7 +25,7 @@ export function Modal({ isOpen, onClose, title, children }) {
       onClick={onClose}
     >
       <div
-        className="w-full max-w-2xl rounded-lg border border-border bg-card p-6 shadow-lg"
+        className={`w-full ${sizeClasses[size]} max-h-[90vh] overflow-y-auto rounded-lg border border-border bg-card p-6 shadow-lg`}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-center justify-between">

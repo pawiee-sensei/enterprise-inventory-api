@@ -289,9 +289,10 @@ const handleCancelEdit = () => {
       <Td>{prod.supplier}</Td>
         <Td>
         <Switch
-            checked={!!prod.is_available_for_sale}
-            onChange={() => handleToggleAvailability(prod)}
-            disabled={togglingId === prod.id}
+        checked={!!prod.is_available_for_sale}
+        onChange={() => handleToggleAvailability(prod)}
+        disabled={togglingId === prod.id}
+        showLabel
         />
         </Td>
         <Td align="right">
