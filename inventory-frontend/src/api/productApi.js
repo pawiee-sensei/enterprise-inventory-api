@@ -19,3 +19,10 @@ export const deleteProduct = async (id) => {
   const response = await axiosClient.delete(`/products/${id}`);
   return response.data;
 };
+
+export const updateProductAvailability = async (id, isAvailable) => {
+  const response = await axiosClient.patch(`/products/${id}/availability`, {
+    is_available_for_sale: isAvailable,
+  });
+  return response.data;
+};

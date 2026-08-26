@@ -6,7 +6,8 @@ const {
     findCategoryById,
     findSupplierById,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    updateProductAvailability
 } = require('../models/productModel');
 
 const AppError = require('../utils/AppError');
@@ -111,10 +112,19 @@ const deleteProductService = async (id) => {
     return;
 };
 
+const updateProductAvailabilityService = async (id, isAvailable) => {
+    const affectedRows = await updateProductAvailability(id, isAvailable);
+    if (affectedRows === 0) {
+        throw new AppError("Product not found", 404);
+    }
+    return { id, is_available_for_sale: isAvailable };
+};
+
 module.exports = {
     createProductService,
     getAllProductsService,
     getProductByIdService,
     updateProductService,
-    deleteProductService
+    deleteProductService,
+    updateProductAvailabilityService
 };

@@ -7,7 +7,8 @@ const {
     getAllProducts,
     getProductById,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    updateProductAvailability
 } = require("../controllers/productController");
 
 // Imports middleware
@@ -23,5 +24,6 @@ router.get("/", authMiddleware, authorize(1,2), getAllProducts);
 router.get("/:id", authMiddleware, authorize(1,2), getProductById);
 router.put("/:id", authMiddleware, authorize(1), validateProduct, updateProduct);
 router.delete("/:id", authMiddleware, authorize(1), deleteProduct);
+router.patch("/:id/availability", authMiddleware, authorize(1), updateProductAvailability);
 
 module.exports = router;

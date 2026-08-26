@@ -131,7 +131,9 @@ function Sales() {
   );
 
   const handleAddProduct = (prod) => {
-    if (isAlreadyAdded(prod.id) || prod.stock <= 0) return;
+    if (isAlreadyAdded(prod.id) || prod.stock <= 0 || !prod.is_available_for_sale) return;
+
+    
     setItems([
       ...items,
       {
@@ -347,13 +349,19 @@ function Sales() {
                   <Td align="right" className="font-mono tabular-nums">{prod.selling_price}</Td>
                   <Td align="right" className="font-mono tabular-nums">{prod.stock}</Td>
                   <Td align="right">
-                    <Button
-                      variant="secondary"
-                      onClick={() => handleAddProduct(prod)}
-                      disabled={isAlreadyAdded(prod.id) || prod.stock <= 0}
-                    >
-                      {prod.stock <= 0 ? "Out of stock" : isAlreadyAdded(prod.id) ? "Added" : "Add"}
-                    </Button>
+                  <Button
+                    variant="secondary"
+                    onClick={() => handleAddProduct(prod)}
+                    disabled={isAlreadyAdded(prod.id) || prod.stock <= 0 || !prod.is_available_for_sale}
+                  >
+                    {!prod.is_available_for_sale
+                      ? "Unavailable"
+                      : prod.stock <= 0
+                      ? "Out of stock"
+                      : isAlreadyAdded(prod.id)
+                      ? "Added"
+                      : "Add"}
+                  </Button>
                   </Td>
                 </Tr>
               ))}

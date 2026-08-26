@@ -14,6 +14,7 @@
                 p.category_id,
                 p.supplier_id,
                 p.minimum_stock,
+                p.is_available_for_sale,
                 c.name AS category,
                 s.name AS supplier
             FROM products p
@@ -202,6 +203,14 @@ const deleteProduct = async (id) => {
     return result.affectedRows;
 };
 
+const updateProductAvailability = async (id, isAvailable) => {
+    const [result] = await pool.execute(
+        `UPDATE products SET is_available_for_sale = ? WHERE id = ?`,
+        [isAvailable, id]
+    );
+    return result.affectedRows;
+};
+
     module.exports = {
         findAllProducts,
         findProductById,
@@ -210,5 +219,6 @@ const deleteProduct = async (id) => {
         findCategoryById,
         findSupplierById,
         updateProduct,
-        deleteProduct
+        deleteProduct,
+        updateProductAvailability
     };

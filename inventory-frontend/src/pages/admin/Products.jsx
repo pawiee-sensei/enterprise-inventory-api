@@ -1,10 +1,5 @@
 import { useState, useEffect } from "react";
-import {
-  getAllProducts,
-  createProduct,
-  updateProduct,
-  deleteProduct,
-} from "../../api/productApi";
+import { getAllProducts, createProduct, updateProduct, deleteProduct, updateProductAvailability } from "../../api/productApi";
 import { getAllCategories } from "../../api/categoryApi";
 import { getAllSuppliers } from "../../api/supplierApi";
 import { createInventoryAdjustment } from "../../api/adjustmentApi";
@@ -15,6 +10,10 @@ import { Button } from "../../components/ui/Button";
 import { Input, Select } from "../../components/ui/Input";
 import { Badge } from "../../components/ui/Badge";
 import { Modal } from "../../components/ui/Modal";
+import { Switch } from "../../components/ui/Switch";
+import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
+
+
 
 const emptyForm = {
   sku: "",
@@ -41,6 +40,8 @@ function Products() {
   const [adjustingProduct, setAdjustingProduct] = useState(null);
   const [adjustForm, setAdjustForm] = useState({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
 
+   const [togglingId, setTogglingId] = useState(null); 
+
   useEffect(() => {
     loadAll();
   }, []);
@@ -62,6 +63,25 @@ function Products() {
       setLoading(false);
     }
   };
+
+const handleToggleAvailability = async (prod) => {
+  setTogglingId(prod.id);
+  try {
+    const newValue = !prod.is_available_for_sale;
+    await updateProductAvailability(prod.id, newValue);
+
+    // update just this one product locally instead of re-fetching everything
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.id === prod.id ? { ...p, is_available_for_sale: newValue } : p
+      )
+    );
+  } catch (err) {
+    setError(err.response?.data?.message || "Failed to update availability");
+  } finally {
+    setTogglingId(null);
+  }
+};
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -249,33 +269,41 @@ const handleCancelEdit = () => {
             <Th align="right">Stock</Th>
             <Th>Category</Th>
             <Th>Supplier</Th>
+            <Th>Available</Th>
             <Th align="right">Actions</Th>
           </TableHead>
           <TableBody>
-            {products.map((prod) => (
-              <Tr key={prod.id}>
-                <Td className="font-mono tabular-nums text-text-secondary">{prod.sku}</Td>
-                <Td className="font-medium">{prod.name}</Td>
-                <Td align="right" className="font-mono tabular-nums">{prod.cost_price}</Td>
-                <Td align="right" className="font-mono tabular-nums">{prod.selling_price}</Td>
-                <Td align="right">
-                  <span className="font-mono tabular-nums">{prod.stock}</span>
-                  {prod.stock <= prod.minimum_stock && (
-                    <Badge tone="warning" className="ml-2">Low</Badge>
-                  )}
-                </Td>
-                <Td>{prod.category}</Td>
-                <Td>{prod.supplier}</Td>
-                <Td align="right">
-                  <div className="flex justify-end gap-2">
-                    <Button variant="secondary" onClick={() => handleEditClick(prod)}>Edit</Button>
-                    <Button variant="secondary" onClick={() => handleAdjustClick(prod)}>Adjust</Button>
-                    <Button variant="danger" onClick={() => handleDelete(prod.id)}>Delete</Button>
-                  </div>
-                </Td>
-              </Tr>
-            ))}
-          </TableBody>
+  {products.map((prod) => (
+    <Tr key={prod.id}>
+      <Td className="font-mono tabular-nums text-text-secondary">{prod.sku}</Td>
+      <Td className="font-medium">{prod.name}</Td>
+      <Td align="right" className="font-mono tabular-nums">{prod.cost_price}</Td>
+      <Td align="right" className="font-mono tabular-nums">{prod.selling_price}</Td>
+      <Td align="right">
+        <span className="font-mono tabular-nums">{prod.stock}</span>
+        {prod.stock <= prod.minimum_stock && (
+          <Badge tone="warning" className="ml-2">Low</Badge>
+        )}
+      </Td>
+      <Td>{prod.category}</Td>
+      <Td>{prod.supplier}</Td>
+        <Td>
+        <Switch
+            checked={!!prod.is_available_for_sale}
+            onChange={() => handleToggleAvailability(prod)}
+            disabled={togglingId === prod.id}
+        />
+        </Td>
+        <Td align="right">
+        <ActionMenu>
+            <ActionMenuItem onClick={() => handleEditClick(prod)}>Edit</ActionMenuItem>
+            <ActionMenuItem onClick={() => handleAdjustClick(prod)}>Adjust Stock</ActionMenuItem>
+            <ActionMenuItem onClick={() => handleDelete(prod.id)} danger>Delete</ActionMenuItem>
+        </ActionMenu>
+        </Td>
+    </Tr>
+  ))}
+</TableBody>
         </Table>
       )}
 

@@ -5,6 +5,7 @@ const {
     getProductByIdService,
     updateProductService,
     deleteProductService,
+    updateProductAvailabilityService
 } = require("../services/productService");
 
 const createProduct = asyncHandler(async(req, res) => {
@@ -66,10 +67,22 @@ const deleteProduct = asyncHandler(async(req, res) => {
     });
 });
 
+const updateProductAvailability = asyncHandler(async (req, res) => {
+    const { is_available_for_sale } = req.body;
+    const result = await updateProductAvailabilityService(req.params.id, is_available_for_sale);
+
+    res.status(200).json({
+        success: true,
+        message: "Availability updated",
+        data: result,
+    });
+});
+
 module.exports = {
     createProduct,
     getAllProducts,
     getProductById,
     updateProduct,
-    deleteProduct
+    deleteProduct,
+    updateProductAvailability
 };
