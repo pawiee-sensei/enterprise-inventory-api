@@ -5,6 +5,12 @@ import {
   updateSupplier,
   deleteSupplier,
 } from "../../api/supplierApi";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Table, TableHead, Th, TableBody, Tr, Td } from "../../components/ui/Table";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Modal } from "../../components/ui/Modal";
+import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
 
 const emptyForm = {
   name: "",
@@ -19,6 +25,7 @@ function Suppliers() {
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState(emptyForm);
   const [editingId, setEditingId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -41,21 +48,10 @@ function Suppliers() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    try {
-      if (editingId) {
-        await updateSupplier(editingId, form);
-        setEditingId(null);
-      } else {
-        await createSupplier(form);
-      }
-      setForm(emptyForm);
-      loadSuppliers();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to save supplier");
-    }
+  const handleAddClick = () => {
+    setEditingId(null);
+    setForm(emptyForm);
+    setIsModalOpen(true);
   };
 
   const handleEditClick = (sup) => {
@@ -67,11 +63,29 @@ function Suppliers() {
       address: sup.address || "",
       contact_person: sup.contact_person || "",
     });
+    setIsModalOpen(true);
   };
 
-  const handleCancelEdit = () => {
+  const handleCancel = () => {
     setEditingId(null);
     setForm(emptyForm);
+    setIsModalOpen(false);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      if (editingId) {
+        await updateSupplier(editingId, form);
+      } else {
+        await createSupplier(form);
+      }
+      handleCancel();
+      loadSuppliers();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to save supplier");
+    }
   };
 
   const handleDelete = async (id) => {
@@ -85,61 +99,79 @@ function Suppliers() {
   };
 
   return (
-    <div>
-      <h1>Suppliers</h1>
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <PageHeader
+        title="Suppliers"
+        subtitle="Manage the businesses you purchase from"
+        action={<Button onClick={handleAddClick}>Add Supplier</Button>}
+      />
 
-      <form onSubmit={handleSubmit}>
-        <input name="name" placeholder="Name" value={form.name} onChange={handleChange} />
-        <input name="email" placeholder="Email" value={form.email} onChange={handleChange} />
-        <input name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} />
-        <input name="address" placeholder="Address" value={form.address} onChange={handleChange} />
-        <input
-          name="contact_person"
-          placeholder="Contact person"
-          value={form.contact_person}
-          onChange={handleChange}
-        />
-        <button type="submit">{editingId ? "Update Supplier" : "Add Supplier"}</button>
-        {editingId && (
-          <button type="button" onClick={handleCancelEdit}>
-            Cancel
-          </button>
-        )}
-      </form>
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && (
+        <p className="rounded-md bg-danger-bg px-4 py-2 text-sm text-danger">{error}</p>
+      )}
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-sm text-text-secondary">Loading...</p>
       ) : (
-        <table border="1" cellPadding="8">
-          <thead>
-            <tr>
-              <th>ID</th>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Phone</th>
-              <th>Contact Person</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHead>
+            <Th>ID</Th>
+            <Th>Name</Th>
+            <Th>Email</Th>
+            <Th>Phone</Th>
+            <Th>Contact Person</Th>
+            <Th align="right">Actions</Th>
+          </TableHead>
+          <TableBody>
             {suppliers.map((sup) => (
-              <tr key={sup.id}>
-                <td>{sup.id}</td>
-                <td>{sup.name}</td>
-                <td>{sup.email}</td>
-                <td>{sup.phone}</td>
-                <td>{sup.contact_person}</td>
-                <td>
-                  <button onClick={() => handleEditClick(sup)}>Edit</button>
-                  <button onClick={() => handleDelete(sup.id)}>Delete</button>
-                </td>
-              </tr>
+              <Tr key={sup.id}>
+                <Td className="font-mono tabular-nums text-text-secondary">#{sup.id}</Td>
+                <Td className="font-medium">{sup.name}</Td>
+                <Td className="text-text-secondary">{sup.email || "—"}</Td>
+                <Td className="text-text-secondary">{sup.phone || "—"}</Td>
+                <Td>{sup.contact_person || "—"}</Td>
+                <Td align="right">
+                  <ActionMenu>
+                    <ActionMenuItem onClick={() => handleEditClick(sup)}>Edit</ActionMenuItem>
+                    <ActionMenuItem onClick={() => handleDelete(sup.id)} danger>Delete</ActionMenuItem>
+                  </ActionMenu>
+                </Td>
+              </Tr>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCancel}
+        title={editingId ? "Edit Supplier" : "Add Supplier"}
+      >
+        <form onSubmit={handleSubmit} className="grid gap-3 sm:grid-cols-2">
+          <Input name="name" placeholder="Name" value={form.name} onChange={handleChange} required />
+          <Input name="email" placeholder="Email" value={form.email} onChange={handleChange} />
+          <Input name="phone" placeholder="Phone" value={form.phone} onChange={handleChange} />
+          <Input
+            name="contact_person"
+            placeholder="Contact person"
+            value={form.contact_person}
+            onChange={handleChange}
+          />
+          <Input
+            name="address"
+            placeholder="Address"
+            value={form.address}
+            onChange={handleChange}
+            className="sm:col-span-2"
+          />
+          <div className="flex gap-2 sm:col-span-2">
+            <Button type="submit">{editingId ? "Update" : "Add"} Supplier</Button>
+            <Button type="button" variant="secondary" onClick={handleCancel}>
+              Cancel
+            </Button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }
