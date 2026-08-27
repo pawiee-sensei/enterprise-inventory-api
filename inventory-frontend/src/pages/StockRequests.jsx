@@ -8,8 +8,20 @@ import {
 import { getAllProducts } from "../api/productApi";
 import { useAuth, ROLES } from "../context/AuthContext";
 import { formatDate } from "../utils/formatDate";
+import { PageHeader } from "../components/ui/PageHeader";
+import { Table, TableHead, Th, TableBody, Tr, Td } from "../components/ui/Table";
+import { Button } from "../components/ui/Button";
+import { Input, Select } from "../components/ui/Input";
+import { Badge } from "../components/ui/Badge";
+import { Modal } from "../components/ui/Modal";
 
 const reasonCategories = ["Damaged", "Lost / Theft", "Miscount", "Expired", "Other"];
+
+const statusTone = {
+  PENDING: "warning",
+  APPROVED: "success",
+  REJECTED: "danger",
+};
 
 function StockRequests() {
   const { user } = useAuth();
@@ -19,13 +31,12 @@ function StockRequests() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
 
   const [statusFilter, setStatusFilter] = useState("PENDING");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const [search, setSearch] = useState("");
   const [selectedProduct, setSelectedProduct] = useState(null);
-
   const [type, setType] = useState("ADJUSTMENT_OUT");
   const [quantity, setQuantity] = useState("");
   const [reasonCategory, setReasonCategory] = useState("Damaged");
@@ -64,10 +75,6 @@ function StockRequests() {
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const handleSelectProduct = (prod) => {
-    setSelectedProduct(prod);
-  };
-
   const resetForm = () => {
     setSelectedProduct(null);
     setSearch("");
@@ -75,22 +82,19 @@ function StockRequests() {
     setQuantity("");
     setReasonCategory("Damaged");
     setReasonDetail("");
+    setIsModalOpen(false);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setSuccess("");
 
     if (!selectedProduct) {
       setError("Select a product first");
       return;
     }
 
-    // combine category + optional free-text detail into one reason string
-    const reason = reasonDetail
-      ? `${reasonCategory} - ${reasonDetail}`
-      : reasonCategory;
+    const reason = reasonDetail ? `${reasonCategory} - ${reasonDetail}` : reasonCategory;
 
     try {
       await createStockRequest({
@@ -99,7 +103,6 @@ function StockRequests() {
         quantity: Number(quantity),
         reason,
       });
-      setSuccess("Request submitted");
       resetForm();
       loadRequests();
     } catch (err) {
@@ -128,60 +131,133 @@ function StockRequests() {
   };
 
   return (
-    <div>
-      <h1>Stock Adjustment Requests</h1>
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <PageHeader
+        title="Stock Requests"
+        subtitle={
+          isAdmin
+            ? "Review and approve stock adjustment requests"
+            : "Report damaged, lost, or miscounted stock"
+        }
+        action={!isAdmin && <Button onClick={() => setIsModalOpen(true)}>New Request</Button>}
+      />
 
-    {!isAdmin && (
+      {error && (
+        <p className="rounded-md bg-danger-bg px-4 py-2 text-sm text-danger">{error}</p>
+      )}
 
-      <div style={{ border: "1px solid #ccc", padding: "10px", marginBottom: "20px" }}>
-        <h3>Submit a request</h3>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-text-secondary">Filter:</span>
+        <Select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="w-40">
+          <option value="PENDING">Pending</option>
+          <option value="APPROVED">Approved</option>
+          <option value="REJECTED">Rejected</option>
+          <option value="">All</option>
+        </Select>
+      </div>
 
+      {loading ? (
+        <p className="text-sm text-text-secondary">Loading...</p>
+      ) : requests.length === 0 ? (
+        <p className="text-sm text-text-secondary">No requests found.</p>
+      ) : (
+        <Table>
+          <TableHead>
+            <Th>Product</Th>
+            <Th>Type</Th>
+            <Th align="right">Qty</Th>
+            <Th>Reason</Th>
+            <Th>Requested By</Th>
+            <Th>Date</Th>
+            <Th>Status</Th>
+            {isAdmin && <Th align="right">Actions</Th>}
+          </TableHead>
+          <TableBody>
+            {requests.map((r) => (
+              <Tr key={r.id}>
+                <Td className="font-medium">{r.product}</Td>
+                <Td>
+                  <Badge tone={r.type === "ADJUSTMENT_IN" ? "success" : "danger"}>
+                    {r.type === "ADJUSTMENT_IN" ? "Stock In" : "Stock Out"}
+                  </Badge>
+                </Td>
+                <Td align="right" className="font-mono tabular-nums">{r.quantity}</Td>
+                <Td className="text-text-secondary">{r.reason}</Td>
+                <Td>{r.requested_by_name}</Td>
+                <Td className="text-text-secondary">{formatDate(r.created_at)}</Td>
+                <Td>
+                  <Badge tone={statusTone[r.status]}>{r.status}</Badge>
+                </Td>
+                {isAdmin && (
+                  <Td align="right">
+                    {r.status === "PENDING" ? (
+                      <div className="flex justify-end gap-2">
+                        <Button variant="secondary" onClick={() => handleApprove(r.id)}>Approve</Button>
+                        <Button variant="danger" onClick={() => handleReject(r.id)}>Reject</Button>
+                      </div>
+                    ) : (
+                      <span className="text-sm text-text-secondary">—</span>
+                    )}
+                  </Td>
+                )}
+              </Tr>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+
+      <Modal isOpen={isModalOpen} onClose={resetForm} title="New Stock Request">
         {!selectedProduct ? (
           <>
-            <input
+            <Input
               placeholder="Search products..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              className="mb-3 w-full"
             />
-            <table border="1" cellPadding="8">
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Stock</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProducts.map((prod) => (
-                  <tr key={prod.id}>
-                    <td>{prod.name}</td>
-                    <td>{prod.stock}</td>
-                    <td>
-                      <button type="button" onClick={() => handleSelectProduct(prod)}>
-                        Select
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="max-h-64 overflow-y-auto rounded-md border border-border">
+              <Table>
+                <TableHead>
+                  <Th>Product</Th>
+                  <Th align="right">Stock</Th>
+                  <Th align="right">Action</Th>
+                </TableHead>
+                <TableBody>
+                  {filteredProducts.map((prod) => (
+                    <Tr key={prod.id}>
+                      <Td>{prod.name}</Td>
+                      <Td align="right" className="font-mono tabular-nums">{prod.stock}</Td>
+                      <Td align="right">
+                        <Button variant="secondary" onClick={() => setSelectedProduct(prod)}>
+                          Select
+                        </Button>
+                      </Td>
+                    </Tr>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </>
         ) : (
-          <form onSubmit={handleSubmit}>
-            <p>
-              <strong>Selected:</strong> {selectedProduct.name} (current stock:{" "}
-              {selectedProduct.stock}){" "}
-              <button type="button" onClick={() => setSelectedProduct(null)}>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+            <div className="flex items-center justify-between rounded-md border border-border bg-surface px-3 py-2">
+              <span className="text-sm">
+                <span className="font-medium">{selectedProduct.name}</span>{" "}
+                <span className="text-text-secondary">
+                  (current stock: {selectedProduct.stock})
+                </span>
+              </span>
+              <Button type="button" variant="secondary" onClick={() => setSelectedProduct(null)}>
                 Change
-              </button>
-            </p>
+              </Button>
+            </div>
 
-            <select value={type} onChange={(e) => setType(e.target.value)}>
+            <Select value={type} onChange={(e) => setType(e.target.value)}>
               <option value="ADJUSTMENT_OUT">Remove stock (damage/loss)</option>
               <option value="ADJUSTMENT_IN">Add stock (found/correction)</option>
-            </select>
+            </Select>
 
-            <input
+            <Input
               type="number"
               min="1"
               placeholder="Quantity"
@@ -190,81 +266,22 @@ function StockRequests() {
               required
             />
 
-            <select value={reasonCategory} onChange={(e) => setReasonCategory(e.target.value)}>
+            <Select value={reasonCategory} onChange={(e) => setReasonCategory(e.target.value)}>
               {reasonCategories.map((cat) => (
-                <option key={cat} value={cat}>
-                  {cat}
-                </option>
+                <option key={cat} value={cat}>{cat}</option>
               ))}
-            </select>
+            </Select>
 
-            <input
+            <Input
               placeholder="Additional details (optional)"
               value={reasonDetail}
               onChange={(e) => setReasonDetail(e.target.value)}
             />
 
-            <button type="submit">Submit Request</button>
+            <Button type="submit">Submit Request</Button>
           </form>
         )}
-
-        {success && <p style={{ color: "green" }}>{success}</p>}
-      </div>
-    )}
-
-      {error && <p style={{ color: "red" }}>{error}</p>}
-
-      <label>
-        Filter:{" "}
-        <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-          <option value="PENDING">Pending</option>
-          <option value="APPROVED">Approved</option>
-          <option value="REJECTED">Rejected</option>
-          <option value="">All</option>
-        </select>
-      </label>
-
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <table border="1" cellPadding="8">
-          <thead>
-            <tr>
-              <th>Product</th>
-              <th>Type</th>
-              <th>Quantity</th>
-              <th>Reason</th>
-              <th>Requested By</th>
-              <th>Date</th>
-              <th>Status</th>
-              {isAdmin && <th>Actions</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {requests.map((r) => (
-              <tr key={r.id}>
-                <td>{r.product}</td>
-                <td>{r.type}</td>
-                <td>{r.quantity}</td>
-                <td>{r.reason}</td>
-                <td>{r.requested_by_name}</td>
-                <td>{formatDate(r.created_at)}</td>
-                <td>{r.status}</td>
-                {isAdmin && (
-                  <td>
-                    {r.status === "PENDING" && (
-                      <>
-                        <button onClick={() => handleApprove(r.id)}>Approve</button>
-                        <button onClick={() => handleReject(r.id)}>Reject</button>
-                      </>
-                    )}
-                  </td>
-                )}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      </Modal>
     </div>
   );
 }

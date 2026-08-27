@@ -1,5 +1,9 @@
 import { useState, useEffect } from "react";
 import { getAllProducts } from "../api/productApi";
+import { PageHeader } from "../components/ui/PageHeader";
+import { Table, TableHead, Th, TableBody, Tr, Td } from "../components/ui/Table";
+import { Input } from "../components/ui/Input";
+import { Badge } from "../components/ui/Badge";
 
 function ProductsView() {
   const [products, setProducts] = useState([]);
@@ -28,47 +32,55 @@ function ProductsView() {
   );
 
   return (
-    <div>
-      <h1>Products</h1>
+    <div className="mx-auto flex max-w-6xl flex-col gap-6">
+      <PageHeader title="Products" subtitle="Browse the product catalog" />
 
-      <input
+      <Input
         placeholder="Search products..."
         value={search}
         onChange={(e) => setSearch(e.target.value)}
+        className="w-full sm:w-80"
       />
 
-      {error && <p style={{ color: "red" }}>{error}</p>}
+      {error && (
+        <p className="rounded-md bg-danger-bg px-4 py-2 text-sm text-danger">{error}</p>
+      )}
 
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-sm text-text-secondary">Loading...</p>
       ) : (
-        <table border="1" cellPadding="8">
-          <thead>
-            <tr>
-              <th>SKU</th>
-              <th>Name</th>
-              <th>Category</th>
-              <th>Supplier</th>
-              <th>Selling Price</th>
-              <th>Stock</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table>
+          <TableHead>
+            <Th>SKU</Th>
+            <Th>Name</Th>
+            <Th>Category</Th>
+            <Th>Supplier</Th>
+            <Th align="right">Price</Th>
+            <Th align="right">Stock</Th>
+            <Th>Status</Th>
+          </TableHead>
+          <TableBody>
             {filteredProducts.map((prod) => (
-              <tr
-                key={prod.id}
-                style={prod.stock <= prod.minimum_stock ? { background: "#fdd" } : {}}
-              >
-                <td>{prod.sku}</td>
-                <td>{prod.name}</td>
-                <td>{prod.category}</td>
-                <td>{prod.supplier}</td>
-                <td>{prod.selling_price}</td>
-                <td>{prod.stock}</td>
-              </tr>
+              <Tr key={prod.id}>
+                <Td className="font-mono tabular-nums text-text-secondary">{prod.sku}</Td>
+                <Td className="font-medium">{prod.name}</Td>
+                <Td>{prod.category}</Td>
+                <Td>{prod.supplier}</Td>
+                <Td align="right" className="font-mono tabular-nums">{prod.selling_price}</Td>
+                <Td align="right" className="font-mono tabular-nums">{prod.stock}</Td>
+                <Td>
+                  {!prod.is_available_for_sale ? (
+                    <Badge tone="neutral">Unavailable</Badge>
+                  ) : prod.stock <= prod.minimum_stock ? (
+                    <Badge tone="warning">Low Stock</Badge>
+                  ) : (
+                    <Badge tone="success">In Stock</Badge>
+                  )}
+                </Td>
+              </Tr>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       )}
     </div>
   );
