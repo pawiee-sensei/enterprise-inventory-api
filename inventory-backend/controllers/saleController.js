@@ -18,12 +18,14 @@ const createSale = asyncHandler(async (req, res) => {
 });
 
 const getAllSales = asyncHandler(async (req, res) => {
-    const sales = await getAllSalesService();
+    const { page, limit } = req.query;
+    const { sales, pagination } = await getAllSalesService({ page, limit });
 
     res.status(200).json({
         success: true,
         count: sales.length,
-        data: sales
+        data: sales,
+        pagination
     });
 });
 

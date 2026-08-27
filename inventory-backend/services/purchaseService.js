@@ -8,7 +8,8 @@
         findAllPurchases,
         findPurchaseById,
         findPurchaseItems,
-        findProductsPurchasedFromSupplier
+        findProductsPurchasedFromSupplier,
+        countPurchases
     } = require ("../models/purchaseModel");
 
     const {
@@ -146,10 +147,30 @@
         }
     };
 
-const getAllPurchasesService = async () => {
-    const purchases = await findAllPurchases();
+const getAllPurchasesService = async ({ page, limit } = {}) => {
+    if (!page && !limit) {
+        const purchase = await findAllPurchases();
+        return { purchases, pagination: null };
+    }
 
-    return purchases;
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+    const offset = (pageNum - 1) * limitNum;
+
+    const [purchases, total] = await Promise.all([
+        findAllPurchases({ limit: limitNum, offset }),
+        countPurchases(),
+    ]);
+
+    return {
+        purchases,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 const getPurchaseByIdService = async (id) => {

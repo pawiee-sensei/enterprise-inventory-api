@@ -1,7 +1,8 @@
 import axiosClient from "./axiosClient";
 
-export const getAllProducts = async () => {
-  const response = await axiosClient.get("/products");
+export const getAllProducts = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await axiosClient.get(`/products${query ? `?${query}` : ""}`);
   return response.data;
 };
 

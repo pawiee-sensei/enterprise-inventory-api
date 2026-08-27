@@ -12,6 +12,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Modal } from "../../components/ui/Modal";
 import { Switch } from "../../components/ui/Switch";
 import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
+import { Pagination } from "../../components/ui/Pagination";
 
 
 
@@ -28,41 +29,44 @@ const emptyForm = {
 };
 
 function Products() {
-  const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [suppliers, setSuppliers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState(emptyForm);
-  const [editingId, setEditingId] = useState(null);
-  const [error, setError] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
+    const [products, setProducts] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [suppliers, setSuppliers] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [form, setForm] = useState(emptyForm);
+    const [editingId, setEditingId] = useState(null);
+    const [error, setError] = useState("");
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [page, setPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
-  const [adjustingProduct, setAdjustingProduct] = useState(null);
-  const [adjustForm, setAdjustForm] = useState({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
+    const [adjustingProduct, setAdjustingProduct] = useState(null);
+    const [adjustForm, setAdjustForm] = useState({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
 
-   const [togglingId, setTogglingId] = useState(null); 
+    const [togglingId, setTogglingId] = useState(null); 
 
-  useEffect(() => {
+    useEffect(() => {
     loadAll();
-  }, []);
+    }, [page]);
 
-  const loadAll = async () => {
+    const loadAll = async () => {
     setLoading(true);
     try {
-      const [productsRes, categoriesRes, suppliersRes] = await Promise.all([
-        getAllProducts(),
+        const [productsRes, categoriesRes, suppliersRes] = await Promise.all([
+        getAllProducts({ page, limit: 10 }),
         getAllCategories(),
         getAllSuppliers(),
-      ]);
-      setProducts(productsRes.data);
-      setCategories(categoriesRes.data);
-      setSuppliers(suppliersRes.data);
+        ]);
+        setProducts(productsRes.data);
+        setTotalPages(productsRes.pagination?.totalPages || 1);
+        setCategories(categoriesRes.data);
+        setSuppliers(suppliersRes.data);
     } catch (err) {
-      setError("Failed to load data: " + err.message);
+        setError("Failed to load data: " + err.message);
     } finally {
-      setLoading(false);
+        setLoading(false);
     }
-  };
+    };
 
 const handleToggleAvailability = async (prod) => {
   setTogglingId(prod.id);
@@ -307,6 +311,8 @@ const handleCancelEdit = () => {
 </TableBody>
         </Table>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {adjustingProduct && (
         <Card>

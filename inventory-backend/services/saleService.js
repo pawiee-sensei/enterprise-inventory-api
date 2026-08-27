@@ -8,7 +8,8 @@ const {
     findAllSales,
     findSaleById,
     findSaleItems,
-    findTopSellingProducts
+    findTopSellingProducts,
+    countSales
 } = require("../models/saleModel");
 
 const {
@@ -143,9 +144,30 @@ const createSaleService = async(
     }
 };
 
-const getAllSalesService = async () => {
-    const sales = await findAllSales();
-    return sales;
+const getAllSalesService = async ({ page, limit } = {}) => {
+    if (!page && !limit) {
+        const sales = await findAllSales();
+        return { sales, pagination: null };
+    }
+
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+    const offset = (pageNum - 1) * limitNum;
+
+    const [sales, total] = await Promise.all([
+        findAllSales({ limit: limitNum, offset }),
+        countSales(),
+    ]);
+
+    return {
+        sales,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 const getSaleByIdService = async (id) => {

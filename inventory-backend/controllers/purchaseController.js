@@ -19,12 +19,14 @@ const createPurchase = asyncHandler(async(req, res) => {
 });
 
 const getAllPurchases = asyncHandler(async(req, res) => {
-    const purchases = await getAllPurchasesService();
+    const { page, limit } = req.query;
+    const { purchases, pagination } = await getAllPurchasesService({ page, limit });
 
     res.status(200).json({
         success: true,
         count: purchases.length,
-        data: purchases
+        data: purchases,
+        pagination
     })
 });
 

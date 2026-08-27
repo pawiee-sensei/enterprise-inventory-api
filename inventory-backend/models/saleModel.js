@@ -71,23 +71,30 @@ const createSaleItem = async(
 // Find all sales
 // Returns: sales.id, sales.created_by, sales.sale_date, sales.total_amount, sales.status from sales
 // and users.first_name, users.last_name from users
-const findAllSales = async () => {
-    const [rows] = await pool.execute(
-        `SELECT
+const findAllSales = async ({ limit, offset } = {}) => {
+    let query = `
+        SELECT
             s.id,
             CONCAT(u.first_name, ' ', u.last_name) AS created_by,
             s.sale_date,
             s.total_amount,
             s.status
         FROM sales s
+        INNER JOIN users u ON s.user_id = u.id
+        ORDER BY s.id DESC
+    `;
 
-        INNER JOIN users u
-            ON s.user_id = u.id
+    if (limit !== undefined) {
+        query += ` LIMIT ${Number(limit)} OFFSET ${Number(offset)} `;
+    }
 
-        ORDER BY s.id DESC`
-    );
-
+    const [rows] = await pool.execute(query);
     return rows;
+};
+
+const countSales = async () => {
+    const [rows] = await pool.execute(`SELECT COUNT(*) AS total FROM sales`);
+    return rows[0].total;
 };
 
 // Find one sale
@@ -167,5 +174,6 @@ module.exports = {
     findAllSales,
     findSaleById,
     findSaleItems,
-    findTopSellingProducts
+    findTopSellingProducts,
+    countSales
 };

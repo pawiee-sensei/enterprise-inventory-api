@@ -7,7 +7,8 @@ const {
     findSupplierById,
     updateProduct,
     deleteProduct,
-    updateProductAvailability
+    updateProductAvailability,
+    countProducts
 } = require('../models/productModel');
 
 const AppError = require('../utils/AppError');
@@ -41,10 +42,30 @@ const createProductService = async (productData) => {
     };
 };
 
-const getAllProductsService = async () => {
-    const products = await findAllProducts();
+const getAllProductsService = async ({ page, limit } = {}) => {
+    if (!page && !limit) {
+        const products = await findAllProducts();
+        return { products, pagination: null };
+    }
 
-    return products;
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 20;
+    const offset = (pageNum - 1) * limitNum;
+
+    const [products, total] = await Promise.all([
+        findAllProducts({ limit: limitNum, offset }),
+        countProducts(),
+    ]);
+
+    return {
+        products,
+        pagination: {
+            page: pageNum,
+            limit: limitNum,
+            total,
+            totalPages: Math.ceil(total / limitNum),
+        },
+    };
 };
 
 const getProductByIdService = async (id) => {

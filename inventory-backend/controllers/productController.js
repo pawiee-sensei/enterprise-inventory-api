@@ -19,14 +19,16 @@ const createProduct = asyncHandler(async(req, res) => {
 
 });
 
-const getAllProducts = asyncHandler(async(req, res) => {
-    const products = await getAllProductsService();
+const getAllProducts = asyncHandler(async (req, res) => {
+    const { page, limit } = req.query;
+    const { products, pagination } = await getAllProductsService({ page, limit });
 
     res.status(200).json({
         success: true,
         count: products.length,
-        data: products
-    })
+        data: products,
+        pagination,
+    });
 });
 
 const getProductById = asyncHandler(async(req, res) => {

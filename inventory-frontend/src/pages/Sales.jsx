@@ -34,6 +34,8 @@ import {
   CartesianGrid,
 } from "recharts";
 
+import { Pagination } from "../components/ui/Pagination";
+
 function Trend({ value }) {
   const isUp = value >= 0;
   return (
@@ -57,28 +59,35 @@ function Sales() {
   const [selectedSale, setSelectedSale] = useState(null);
   const [returnReason, setReturnReason] = useState("");
   const [returnQuantities, setReturnQuantities] = useState({});
+  
+  const [allSales, setAllSales] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     loadAll();
-  }, []);
+  }, [page]);
 
-  const loadAll = async () => {
-    setLoading(true);
-    try {
-      const [salesRes, productsRes, topRes] = await Promise.all([
-        getAllSales(),
-        getAllProducts(),
-        getTopSellingProducts(5),
-      ]);
-      setSales(salesRes.data);
-      setProducts(productsRes.data);
-      setTopProducts(topRes.data);
-    } catch (err) {
-      setError("Failed to load data: " + err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+const loadAll = async () => {
+  setLoading(true);
+  try {
+    const [salesRes, allSalesRes, productsRes, topRes] = await Promise.all([
+      getAllSales({ page, limit: 10 }),
+      getAllSales(),
+      getAllProducts(),
+      getTopSellingProducts(5),
+    ]);
+    setSales(salesRes.data);
+    setTotalPages(salesRes.pagination?.totalPages || 1);
+    setAllSales(allSalesRes.data);
+    setProducts(productsRes.data);
+    setTopProducts(topRes.data);
+  } catch (err) {
+    setError("Failed to load data: " + err.message);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // ---- insights, computed from the sales already in state ----
   const insights = useMemo(() => {
@@ -94,21 +103,21 @@ function Sales() {
     const lastMonthStart = addMonths(monthStart, -1);
     const nextMonthStart = addMonths(monthStart, 1);
 
-    const today = sumSalesInRange(sales, todayStart, addDays(todayStart, 1));
-    const yesterday = sumSalesInRange(sales, yesterdayStart, todayStart);
+    const today = sumSalesInRange(allSales, todayStart, addDays(todayStart, 1));
+    const yesterday = sumSalesInRange(allSales, yesterdayStart, todayStart);
 
-    const week = sumSalesInRange(sales, weekStart, addDays(weekStart, 7));
-    const lastWeek = sumSalesInRange(sales, lastWeekStart, weekStart);
+    const week = sumSalesInRange(allSales, weekStart, addDays(weekStart, 7));
+    const lastWeek = sumSalesInRange(allSales, lastWeekStart, weekStart);
 
-    const month = sumSalesInRange(sales, monthStart, nextMonthStart);
-    const lastMonth = sumSalesInRange(sales, lastMonthStart, monthStart);
+    const month = sumSalesInRange(allSales, monthStart, nextMonthStart);
+    const lastMonth = sumSalesInRange(allSales, lastMonthStart, monthStart);
 
     return {
       today: { ...today, change: percentChange(today.revenue, yesterday.revenue) },
       week: { ...week, change: percentChange(week.revenue, lastWeek.revenue) },
       month: { ...month, change: percentChange(month.revenue, lastMonth.revenue) },
     };
-  }, [sales]);
+  }, [allSales]);
 
   // ---- last 7 days revenue, for the trend chart ----
   const chartData = useMemo(() => {

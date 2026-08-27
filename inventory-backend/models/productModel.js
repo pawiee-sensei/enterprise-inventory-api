@@ -1,35 +1,42 @@
     const pool = require("../database/db");
 
-    const findAllProducts = async () => {
-        const [rows] = await pool.execute(
-            `
-            SELECT
-                p.id,
-                p.sku,
-                p.name,
-                p.description,
-                p.cost_price,
-                p.selling_price,
-                p.stock,
-                p.category_id,
-                p.supplier_id,
-                p.minimum_stock,
-                p.is_available_for_sale,
-                c.name AS category,
-                s.name AS supplier
-            FROM products p
+const findAllProducts = async ({ limit, offset } = {}) => {
+    let query = `
+        SELECT
+            p.id,
+            p.sku,
+            p.name,
+            p.description,
+            p.cost_price,
+            p.selling_price,
+            p.stock,
+            p.category_id,
+            p.supplier_id,
+            p.minimum_stock,
+            p.is_available_for_sale,
+            c.name AS category,
+            s.name AS supplier
+        FROM products p
+        INNER JOIN categories c ON p.category_id = c.id
+        INNER JOIN suppliers s ON p.supplier_id = s.id
+        WHERE p.is_active = 1
+        ORDER BY p.id DESC
+    `;
 
-            INNER JOIN categories c
-                ON p.category_id = c.id
-            INNER JOIN suppliers s
-                ON p.supplier_id = s.id
-            WHERE p.is_active = 1
-            ORDER BY p.id DESC
-            `
-        );
+    if (limit !== undefined) {
+        query += ` LIMIT ${Number(limit)} OFFSET ${Number(offset)} `;
+    }
 
-        return rows;
-    };
+    const [rows] = await pool.execute(query);
+    return rows;
+};
+
+const countProducts = async () => {
+    const [rows] = await pool.execute(
+        `SELECT COUNT(*) AS total FROM products WHERE is_active = 1`
+    );
+    return rows[0].total;
+};
 
     const findProductById = async (id) => {
         const [rows] = await pool.execute(
@@ -220,5 +227,6 @@ const updateProductAvailability = async (id, isAvailable) => {
         findSupplierById,
         updateProduct,
         deleteProduct,
-        updateProductAvailability
+        updateProductAvailability,
+        countProducts
     };

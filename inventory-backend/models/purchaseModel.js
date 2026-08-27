@@ -1,9 +1,9 @@
 
 const pool = require("../database/db");
 
-const findAllPurchases = async () => {
-    const [rows] = await pool.execute(
-        `SELECT 
+const findAllPurchases = async ({ limit, offset } = {}) => {
+    let query = `
+        SELECT
             p.id,
             s.name AS supplier,
             CONCAT(u.first_name, ' ', u.last_name) AS created_by,
@@ -11,17 +11,21 @@ const findAllPurchases = async () => {
             p.total_amount,
             p.status
         FROM purchases p
+        INNER JOIN suppliers s ON p.supplier_id = s.id
+        INNER JOIN users u ON p.user_id = u.id
+        ORDER BY p.id DESC
+    `;
 
-        INNER JOIN suppliers s
-            ON p.supplier_id = s.id
+    if (limit !== undefined) {
+        query += ` LIMIT ${Number(limit)} OFFSET ${Number(offset)} `;
+    }
 
-        INNER JOIN users u
-            ON p.user_id = u.id
-
-        ORDER BY p.id DESC`
-    );
-
+    const [rows] = await pool.execute(query);
     return rows;
+};
+const countPurchases = async () => {
+    const [rows] = await pool.execute(`SELECT COUNT(*) AS total FROM purchases`);
+    return rows[0].total;
 };
 
 const findPurchaseById = async (id) => {
@@ -162,5 +166,6 @@ module.exports = {
     findPurchaseItems,
     createPurchase,
     createPurchaseItem,
-    findProductsPurchasedFromSupplier
+    findProductsPurchasedFromSupplier,
+    countPurchases
 };

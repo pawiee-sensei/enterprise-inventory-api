@@ -16,6 +16,7 @@ import { Input, Select } from "../../components/ui/Input";
 import { Badge } from "../../components/ui/Badge";
 import { Modal } from "../../components/ui/Modal";
 import { formatDate } from "../../utils/formatDate";
+import { Pagination } from "../../components/ui/Pagination";
 
 function Purchases() {
   const [purchases, setPurchases] = useState([]);
@@ -33,10 +34,12 @@ function Purchases() {
   const [selectedPurchase, setSelectedPurchase] = useState(null);
   const [returnReason, setReturnReason] = useState("");
   const [returnQuantities, setReturnQuantities] = useState({});
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    loadAll();
-  }, []);
+useEffect(() => {
+  loadAll();
+}, [page]);
 
   useEffect(() => {
     if (!supplierId) {
@@ -52,11 +55,12 @@ function Purchases() {
     setLoading(true);
     try {
       const [purchasesRes, suppliersRes, productsRes] = await Promise.all([
-        getAllPurchases(),
+        getAllPurchases({ page, limit: 10 }),
         getAllSuppliers(),
         getAllProducts(),
       ]);
       setPurchases(purchasesRes.data);
+      setTotalPages(purchasesRes.pagination?.totalPages || 1);
       setSuppliers(suppliersRes.data);
       setProducts(productsRes.data);
     } catch (err) {
@@ -64,7 +68,7 @@ function Purchases() {
     } finally {
       setLoading(false);
     }
-  };
+};
 
   const historyIds = historyProducts.map((p) => p.id);
   const isAlreadyAdded = (productId) => items.some((item) => item.product_id === productId);
@@ -208,6 +212,8 @@ function Purchases() {
           </TableBody>
         </Table>
       )}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {/* New Purchase modal */}
       <Modal isOpen={isPurchaseModalOpen} onClose={resetPurchaseForm} title="New Purchase" size="xl">
