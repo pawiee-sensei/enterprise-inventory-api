@@ -1,136 +1,153 @@
 import { useState, useEffect } from "react";
 import { getAllCategories, createCategory, updateCategory, deleteCategory } from "../../api/categoryApi";
+import { PageHeader } from "../../components/ui/PageHeader";
+import { Table, TableHead, Th, TableBody, Tr, Td } from "../../components/ui/Table";
+import { Button } from "../../components/ui/Button";
+import { Input } from "../../components/ui/Input";
+import { Modal } from "../../components/ui/Modal";
+import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
 
-    function Categories() {
-    const [categories, setCategories] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [form, setForm] = useState({ name: "", description: "" });
-    const [error, setError] = useState("");
-    const [editingId, setEditingId] = useState(null);
+function Categories() {
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [form, setForm] = useState({ name: "", description: "" });
+  const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-    // fetch all categories when the page first loads
-    useEffect(() => {
-        loadCategories();
-    }, []);
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
-    // fetch all categories
-    const loadCategories = async () => {
-        setLoading(true);
-
-        
+  const loadCategories = async () => {
+    setLoading(true);
     try {
-        const data = await getAllCategories();
-        setCategories(data.data); // backend wraps the array inside { data: [...] }
-        } catch (err) {
-        setError("Failed to load categories: " + err.message);
-        } finally {
-        setLoading(false);
-        }
-    };
-
-    const handleChange = (e) => {
-        setForm({ ...form, [e.target.name]: e.target.value });
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setError("");
-        try {
-            if (editingId) {
-            await updateCategory(editingId, form);
-            setEditingId(null);
-            } else {
-            await createCategory(form);
-            }
-            setForm({ name: "", description: "" });
-            loadCategories();
-        } catch (err) {
-            setError(err.response?.data?.message || "Failed to save category");
-        }
-    };
-
-    const handleDelete = async (id, name) => {
-    const confirmed = window.confirm(`Are you sure you want to delete category: ${name}?`);
-    if (!confirmed) return;
-
-    try {
-        await deleteCategory(id);
-        loadCategories();
+      const data = await getAllCategories();
+      setCategories(data.data);
     } catch (err) {
-        setError(err.response?.data?.message || "Failed to delete category");
+      setError("Failed to load categories: " + err.message);
+    } finally {
+      setLoading(false);
     }
-    };
+  };
 
-    const handleEditClick = (cat) => {
-        setEditingId(cat.id);
-        setForm({ name: cat.name, description: cat.description || "" });
-        };
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
 
-        const handleCancelEdit = () => {
-        setEditingId(null);
-        setForm({ name: "", description: "" });
-        };
+  const handleAddClick = () => {
+    setEditingId(null);
+    setForm({ name: "", description: "" });
+    setIsModalOpen(true);
+  };
 
-    return (
-        <div>
-        <h1>Categories</h1>
+  const handleEditClick = (cat) => {
+    setEditingId(cat.id);
+    setForm({ name: cat.name, description: cat.description || "" });
+    setIsModalOpen(true);
+  };
 
-        <form onSubmit={handleSubmit}>
-            <input
-                name="name"
-                placeholder="Category name"
-                value={form.name}
-                onChange={handleChange}
-            />
-            <input
-                name="description"
-                placeholder="Description (optional)"
-                value={form.description}
-                onChange={handleChange}
-            />
+  const handleCancel = () => {
+    setEditingId(null);
+    setForm({ name: "", description: "" });
+    setIsModalOpen(false);
+  };
 
-            <button type="submit">{editingId ? "Update Category" : "Add Category"}</button>
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      if (editingId) {
+        await updateCategory(editingId, form);
+      } else {
+        await createCategory(form);
+      }
+      handleCancel();
+      loadCategories();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to save category");
+    }
+  };
 
-            {editingId && (
-                <button type="button" onClick={handleCancelEdit}>
-                    Cancel
-                </button>
-            )}
+  const handleDelete = async (id) => {
+    if (!window.confirm("Delete this category?")) return;
+    try {
+      await deleteCategory(id);
+      loadCategories();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete category");
+    }
+  };
+
+  return (
+    <div className="mx-auto flex max-w-5xl flex-col gap-6">
+      <PageHeader
+        title="Categories"
+        subtitle="Organize your products into categories"
+        action={<Button onClick={handleAddClick}>Add Category</Button>}
+      />
+
+      {error && (
+        <p className="rounded-md bg-danger-bg px-4 py-2 text-sm text-danger">{error}</p>
+      )}
+
+      {loading ? (
+        <p className="text-sm text-text-secondary">Loading...</p>
+      ) : (
+        <Table>
+          <TableHead>
+            <Th>ID</Th>
+            <Th>Name</Th>
+            <Th>Description</Th>
+            <Th align="right">Actions</Th>
+          </TableHead>
+          <TableBody>
+            {categories.map((cat) => (
+              <Tr key={cat.id}>
+                <Td className="font-mono tabular-nums text-text-secondary">#{cat.id}</Td>
+                <Td className="font-medium">{cat.name}</Td>
+                <Td className="text-text-secondary">{cat.description || "—"}</Td>
+                <Td align="right">
+                  <ActionMenu>
+                    <ActionMenuItem onClick={() => handleEditClick(cat)}>Edit</ActionMenuItem>
+                    <ActionMenuItem onClick={() => handleDelete(cat.id)} danger>Delete</ActionMenuItem>
+                  </ActionMenu>
+                </Td>
+              </Tr>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCancel}
+        title={editingId ? "Edit Category" : "Add Category"}
+      >
+        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
+          <Input
+            name="name"
+            placeholder="Category name"
+            value={form.name}
+            onChange={handleChange}
+            required
+          />
+          <Input
+            name="description"
+            placeholder="Description (optional)"
+            value={form.description}
+            onChange={handleChange}
+          />
+          <div className="flex gap-2">
+            <Button type="submit">{editingId ? "Update" : "Add"} Category</Button>
+            <Button type="button" variant="secondary" onClick={handleCancel}>
+              Cancel
+            </Button>
+          </div>
         </form>
+      </Modal>
+    </div>
+  );
+}
 
-        {error && <p style={{ color: "red" }}>{error}</p>}
-
-        {loading ? (
-            <p>Loading...</p>
-        ) : (
-            <table border="1" cellPadding="8">
-            <thead>
-                <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {categories.map((cat) => (
-                <tr key={cat.id}>
-                    <td>{cat.id}</td>
-                    <td>{cat.name}</td>
-                    <td>{cat.description}</td>
-                    <td>
-                        <td>
-                        <button onClick={() => handleEditClick(cat)}>Edit</button>
-                        <button onClick={() => handleDelete(cat.id, cat.name)}>Delete</button>
-                        </td>
-                    </td>
-                </tr>
-                ))}
-            </tbody>
-            </table>
-        )}
-        </div>
-    );
-    }
-
-    export default Categories;
+export default Categories;
