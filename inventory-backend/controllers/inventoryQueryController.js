@@ -10,12 +10,14 @@ const {
 
 
 const getAllInventory = asyncHandler(async (req, res) => {
-
-    const inventory = await getAllInventoryService();
+    const { page, limit } = req.query;
+    const { inventory, pagination } = await getAllInventoryService({ page, limit });
 
     res.status(200).json({
         success: true,
-        data: inventory
+        count: inventory.length,
+        data: inventory,
+        pagination,
     });
 });
 

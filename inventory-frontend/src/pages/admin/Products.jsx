@@ -271,6 +271,7 @@ const handleCancelEdit = () => {
             <Th align="right">Cost</Th>
             <Th align="right">Price</Th>
             <Th align="right">Stock</Th>
+            <Th>Status</Th>
             <Th>Category</Th>
             <Th>Supplier</Th>
             <Th>Available</Th>
@@ -283,10 +284,12 @@ const handleCancelEdit = () => {
       <Td className="font-medium">{prod.name}</Td>
       <Td align="right" className="font-mono tabular-nums">{prod.cost_price}</Td>
       <Td align="right" className="font-mono tabular-nums">{prod.selling_price}</Td>
-      <Td align="right">
-        <span className="font-mono tabular-nums">{prod.stock}</span>
-        {prod.stock <= prod.minimum_stock && (
-          <Badge tone="warning" className="ml-2">Low</Badge>
+      <Td align="right" className="font-mono tabular-nums">{prod.stock}</Td>
+      <Td>
+        {prod.stock <= prod.minimum_stock ? (
+          <Badge tone="warning">Low Stock</Badge>
+        ) : (
+          <Badge tone="success">In Stock</Badge>
         )}
       </Td>
       <Td>{prod.category}</Td>
@@ -314,39 +317,47 @@ const handleCancelEdit = () => {
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
-      {adjustingProduct && (
-        <Card>
-          <CardHeader
-            title={`Adjust stock — ${adjustingProduct.name} (current: ${adjustingProduct.stock})`}
-          />
-          <form onSubmit={handleAdjustSubmit} className="flex flex-wrap items-end gap-3">
-            <Select name="type" value={adjustForm.type} onChange={handleAdjustChange}>
-              <option value="ADJUSTMENT_IN">Add stock (found/correction up)</option>
-              <option value="ADJUSTMENT_OUT">Remove stock (damage/loss/correction down)</option>
-            </Select>
-            <Input
-              name="quantity"
-              type="number"
-              min="1"
-              placeholder="Quantity"
-              value={adjustForm.quantity}
-              onChange={handleAdjustChange}
-              required
-            />
-            <Input
-              name="reason"
-              placeholder="Reason (required)"
-              value={adjustForm.reason}
-              onChange={handleAdjustChange}
-              required
-            />
-            <Button type="submit">Submit</Button>
-            <Button type="button" variant="secondary" onClick={() => setAdjustingProduct(null)}>
-              Cancel
-            </Button>
-          </form>
-        </Card>
-      )}
+<Modal
+  isOpen={!!adjustingProduct}
+  onClose={() => setAdjustingProduct(null)}
+  title={adjustingProduct ? `Adjust Stock — ${adjustingProduct.name}` : ""}
+>
+  {adjustingProduct && (
+    <>
+      <p className="mb-4 text-sm text-text-secondary">
+        Current stock: <span className="font-mono tabular-nums text-text-primary">{adjustingProduct.stock}</span>
+      </p>
+      <form onSubmit={handleAdjustSubmit} className="flex flex-col gap-3">
+        <Select name="type" value={adjustForm.type} onChange={handleAdjustChange}>
+          <option value="ADJUSTMENT_IN">Add stock (found/correction up)</option>
+          <option value="ADJUSTMENT_OUT">Remove stock (damage/loss/correction down)</option>
+        </Select>
+        <Input
+          name="quantity"
+          type="number"
+          min="1"
+          placeholder="Quantity"
+          value={adjustForm.quantity}
+          onChange={handleAdjustChange}
+          required
+        />
+        <Input
+          name="reason"
+          placeholder="Reason (required)"
+          value={adjustForm.reason}
+          onChange={handleAdjustChange}
+          required
+        />
+        <div className="flex gap-2">
+          <Button type="submit">Submit</Button>
+          <Button type="button" variant="secondary" onClick={() => setAdjustingProduct(null)}>
+            Cancel
+          </Button>
+        </div>
+      </form>
+    </>
+  )}
+</Modal>
     </div>
   );
 }

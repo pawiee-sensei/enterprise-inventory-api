@@ -5,9 +5,9 @@ const pool = require("../database/db");
 // product.stock = products.stock
 // category = categories.name
 // supplier = suppliers.name
-const findAllInventory = async() => {
-    const [rows] = await pool.execute(
-        `SELECT
+const findAllInventory = async ({ limit, offset } = {}) => {
+    let query = `
+        SELECT
             p.id,
             p.sku,
             p.name,
@@ -16,17 +16,22 @@ const findAllInventory = async() => {
             c.name AS category,
             s.name AS supplier
         FROM products p
-        
-        INNER JOIN categories c
-            ON p.category_id = c.id
-        INNER JOIN suppliers s
-            ON p.supplier_id = s.id
-        
+        INNER JOIN categories c ON p.category_id = c.id
+        INNER JOIN suppliers s ON p.supplier_id = s.id
         ORDER BY p.id DESC
-        `
-    );
+    `;
 
+    if (limit !== undefined) {
+        query += ` LIMIT ${Number(limit)} OFFSET ${Number(offset)} `;
+    }
+
+    const [rows] = await pool.execute(query);
     return rows;
+};
+
+const countInventory = async () => {
+    const [rows] = await pool.execute(`SELECT COUNT(*) AS total FROM products`);
+    return rows[0].total;
 };
 
 // Get products that are at or below their minimum stock level.
@@ -185,5 +190,6 @@ module.exports = {
     findProductById,
     getInventorySummary,
     findAllInventoryLogs,
-    countInventoryLogs
+    countInventoryLogs,
+    countInventory
 };

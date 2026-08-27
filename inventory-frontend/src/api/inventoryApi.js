@@ -1,7 +1,8 @@
 import axiosClient from "./axiosClient";
 
-export const getAllInventory = async () => {
-  const response = await axiosClient.get("/inventory");
+export const getAllInventory = async (params = {}) => {
+  const query = new URLSearchParams(params).toString();
+  const response = await axiosClient.get(`/inventory${query ? `?${query}` : ""}`);
   return response.data;
 };
 
@@ -29,3 +30,4 @@ export const getAllInventoryLogs = async ({ page = 1, limit = 10, productId = ""
   const response = await axiosClient.get(`/inventory/logs?${params.toString()}`);
   return response.data;
 };
+
