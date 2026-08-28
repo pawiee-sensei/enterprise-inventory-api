@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from "react-router-dom";
 import { useAuth, ROLES } from "../context/AuthContext";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
+import { loginUser } from "../api/authApi";
 
 export default function Login() {
   const { login, isAuthenticated, user } = useAuth();
@@ -23,23 +24,25 @@ export default function Login() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    setSubmitting(true);
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  setSubmitting(true);
 
-    try {
-      const loggedInUser = await login(form.email, form.password);
-      const redirectTo =
-        location.state?.from ||
-        (loggedInUser.role === ROLES.ADMIN ? "/admin" : "/dashboard");
-      navigate(redirectTo, { replace: true });
-    } catch (err) {
-      setError(err.response?.data?.message || "Invalid email or password.");
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  try {
+    const data = await loginUser(form.email, form.password);
+    login(data.token, data.user);
+
+    const redirectTo =
+      location.state?.from ||
+      (data.user.role === ROLES.ADMIN ? "/admin" : "/dashboard");
+    navigate(redirectTo, { replace: true });
+  } catch (err) {
+    setError(err.response?.data?.message || "Invalid email or password.");
+  } finally {
+    setSubmitting(false);
+  }
+};
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-surface px-4">

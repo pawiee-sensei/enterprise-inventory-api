@@ -6,6 +6,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Modal } from "../../components/ui/Modal";
 import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
+import { useToast } from "../../context/ToastContext";
 
 function Categories() {
   const [categories, setCategories] = useState([]);
@@ -14,6 +15,7 @@ function Categories() {
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const { toast } = useToast();
 
   useEffect(() => {
     loadCategories();
@@ -53,31 +55,38 @@ function Categories() {
     setIsModalOpen(false);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    try {
-      if (editingId) {
-        await updateCategory(editingId, form);
-      } else {
-        await createCategory(form);
-      }
-      handleCancel();
-      loadCategories();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to save category");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  try {
+    if (editingId) {
+      await updateCategory(editingId, form);
+      toast.success("Category updated");
+    } else {
+      await createCategory(form);
+      toast.success("Category created");
     }
-  };
+    handleCancel();
+    loadCategories();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to save category";
+    setError(message);
+    toast.error(message);
+  }
+};
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this category?")) return;
-    try {
-      await deleteCategory(id);
-      loadCategories();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete category");
-    }
-  };
+const handleDelete = async (id) => {
+  if (!window.confirm("Delete this category?")) return;
+  try {
+    await deleteCategory(id);
+    toast.success("Category deleted");
+    loadCategories();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to delete category";
+    setError(message);
+    toast.error(message);
+  }
+};
 
   return (
     <div className="mx-auto flex max-w-5xl flex-col gap-6">
