@@ -14,6 +14,7 @@ import { Button } from "../components/ui/Button";
 import { Input, Select } from "../components/ui/Input";
 import { Badge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
+import { useToast } from "../context/ToastContext";
 
 const reasonCategories = ["Damaged", "Lost / Theft", "Miscount", "Expired", "Other"];
 
@@ -41,6 +42,7 @@ function StockRequests() {
   const [quantity, setQuantity] = useState("");
   const [reasonCategory, setReasonCategory] = useState("Damaged");
   const [reasonDetail, setReasonDetail] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     loadProducts();
@@ -85,50 +87,59 @@ function StockRequests() {
     setIsModalOpen(false);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
 
-    if (!selectedProduct) {
-      setError("Select a product first");
-      return;
-    }
+  if (!selectedProduct) {
+    setError("Select a product first");
+    return;
+  }
 
-    const reason = reasonDetail ? `${reasonCategory} - ${reasonDetail}` : reasonCategory;
+  const reason = reasonDetail ? `${reasonCategory} - ${reasonDetail}` : reasonCategory;
 
-    try {
-      await createStockRequest({
-        product_id: selectedProduct.id,
-        type,
-        quantity: Number(quantity),
-        reason,
-      });
-      resetForm();
-      loadRequests();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to submit request");
-    }
-  };
+  try {
+    await createStockRequest({
+      product_id: selectedProduct.id,
+      type,
+      quantity: Number(quantity),
+      reason,
+    });
+    toast.success("Request submitted");
+    resetForm();
+    loadRequests();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to submit request";
+    setError(message);
+    toast.error(message);
+  }
+};
 
-  const handleApprove = async (id) => {
-    setError("");
-    try {
-      await approveStockRequest(id);
-      loadRequests();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to approve");
-    }
-  };
+const handleApprove = async (id) => {
+  setError("");
+  try {
+    await approveStockRequest(id);
+    toast.success("Request approved");
+    loadRequests();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to approve";
+    setError(message);
+    toast.error(message);
+  }
+};
 
-  const handleReject = async (id) => {
-    setError("");
-    try {
-      await rejectStockRequest(id);
-      loadRequests();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to reject");
-    }
-  };
+const handleReject = async (id) => {
+  setError("");
+  try {
+    await rejectStockRequest(id);
+    toast.success("Request rejected");
+    loadRequests();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to reject";
+    setError(message);
+    toast.error(message);
+  }
+};
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">

@@ -17,6 +17,7 @@ import { Badge } from "../../components/ui/Badge";
 import { Modal } from "../../components/ui/Modal";
 import { formatDate } from "../../utils/formatDate";
 import { Pagination } from "../../components/ui/Pagination";
+import { useToast } from "../../context/ToastContext";
 
 function Purchases() {
   const [purchases, setPurchases] = useState([]);
@@ -36,6 +37,7 @@ function Purchases() {
   const [returnQuantities, setReturnQuantities] = useState({});
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const { toast } = useToast();
 
 useEffect(() => {
   loadAll();
@@ -111,25 +113,28 @@ useEffect(() => {
     setIsPurchaseModalOpen(false);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    const payload = {
-      supplier_id: supplierId,
-      items: items.map((item) => ({
-        product_id: item.product_id,
-        quantity: Number(item.quantity),
-        unit_cost: Number(item.unit_cost),
-      })),
-    };
-    try {
-      await createPurchase(payload);
-      resetPurchaseForm();
-      loadAll();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to create purchase");
-    }
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  const payload = {
+    supplier_id: supplierId,
+    items: items.map((item) => ({
+      product_id: item.product_id,
+      quantity: Number(item.quantity),
+      unit_cost: Number(item.unit_cost),
+    })),
   };
+  try {
+    await createPurchase(payload);
+    toast.success("Purchase created");
+    resetPurchaseForm();
+    loadAll();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to create purchase";
+    setError(message);
+    toast.error(message);
+  }
+};
 
   const handleView = async (id) => {
     try {
@@ -144,31 +149,34 @@ useEffect(() => {
     setReturnQuantities({ ...returnQuantities, [itemId]: value });
   };
 
-  const handleSubmitReturn = async (e) => {
-    e.preventDefault();
-    setError("");
-    const returnItems = selectedPurchase.items
-      .filter((item) => Number(returnQuantities[item.id]) > 0)
-      .map((item) => ({
-        product_id: item.product_id,
-        quantity: Number(returnQuantities[item.id]),
-      }));
+const handleSubmitReturn = async (e) => {
+  e.preventDefault();
+  setError("");
+  const returnItems = selectedPurchase.items
+    .filter((item) => Number(returnQuantities[item.id]) > 0)
+    .map((item) => ({
+      product_id: item.product_id,
+      quantity: Number(returnQuantities[item.id]),
+    }));
 
-    if (returnItems.length === 0) {
-      setError("Enter a quantity for at least one item to return");
-      return;
-    }
+  if (returnItems.length === 0) {
+    setError("Enter a quantity for at least one item to return");
+    return;
+  }
 
-    try {
-      await createPurchaseReturn(selectedPurchase.id, { reason: returnReason, items: returnItems });
-      setReturnReason("");
-      setReturnQuantities({});
-      setSelectedPurchase(null);
-      loadAll();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to create return");
-    }
-  };
+  try {
+    await createPurchaseReturn(selectedPurchase.id, { reason: returnReason, items: returnItems });
+    toast.success("Return recorded");
+    setReturnReason("");
+    setReturnQuantities({});
+    setSelectedPurchase(null);
+    loadAll();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to create return";
+    setError(message);
+    toast.error(message);
+  }
+};
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">

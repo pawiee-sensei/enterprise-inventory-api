@@ -35,6 +35,7 @@ import {
 } from "recharts";
 
 import { Pagination } from "../components/ui/Pagination";
+import { useToast } from "../context/ToastContext";
 
 function Trend({ value }) {
   const isUp = value >= 0;
@@ -63,6 +64,8 @@ function Sales() {
   const [allSales, setAllSales] = useState([]);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+
+  const { toast } = useToast();
 
   useEffect(() => {
     loadAll();
@@ -169,25 +172,28 @@ const loadAll = async () => {
     0
   );
 
-  const handleSubmitSale = async (e) => {
-    e.preventDefault();
-    setError("");
-    const payload = {
-      items: items.map((item) => ({
-        product_id: item.product_id,
-        quantity: Number(item.quantity),
-      })),
-    };
-    try {
-      await createSale(payload);
-      setItems([]);
-      setSearch("");
-      setIsSaleModalOpen(false);
-      loadAll();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to create sale");
-    }
+const handleSubmitSale = async (e) => {
+  e.preventDefault();
+  setError("");
+  const payload = {
+    items: items.map((item) => ({
+      product_id: item.product_id,
+      quantity: Number(item.quantity),
+    })),
   };
+  try {
+    await createSale(payload);
+    toast.success("Sale completed");
+    setItems([]);
+    setSearch("");
+    setIsSaleModalOpen(false);
+    loadAll();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to create sale";
+    setError(message);
+    toast.error(message);
+  }
+};
 
   const handleView = async (id) => {
     try {
@@ -202,31 +208,34 @@ const loadAll = async () => {
     setReturnQuantities({ ...returnQuantities, [itemId]: value });
   };
 
-  const handleSubmitReturn = async (e) => {
-    e.preventDefault();
-    setError("");
-    const returnItems = selectedSale.items
-      .filter((item) => Number(returnQuantities[item.id]) > 0)
-      .map((item) => ({
-        product_id: item.product_id,
-        quantity: Number(returnQuantities[item.id]),
-      }));
+const handleSubmitReturn = async (e) => {
+  e.preventDefault();
+  setError("");
+  const returnItems = selectedSale.items
+    .filter((item) => Number(returnQuantities[item.id]) > 0)
+    .map((item) => ({
+      product_id: item.product_id,
+      quantity: Number(returnQuantities[item.id]),
+    }));
 
-    if (returnItems.length === 0) {
-      setError("Enter a quantity for at least one item to return");
-      return;
-    }
+  if (returnItems.length === 0) {
+    setError("Enter a quantity for at least one item to return");
+    return;
+  }
 
-    try {
-      await createSaleReturn(selectedSale.id, { reason: returnReason, items: returnItems });
-      setReturnReason("");
-      setReturnQuantities({});
-      setSelectedSale(null);
-      loadAll();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to create return");
-    }
-  };
+  try {
+    await createSaleReturn(selectedSale.id, { reason: returnReason, items: returnItems });
+    toast.success("Return recorded");
+    setReturnReason("");
+    setReturnQuantities({});
+    setSelectedSale(null);
+    loadAll();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to create return";
+    setError(message);
+    toast.error(message);
+  }
+};
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">

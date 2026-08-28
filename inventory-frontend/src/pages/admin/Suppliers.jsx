@@ -11,6 +11,7 @@ import { Button } from "../../components/ui/Button";
 import { Input } from "../../components/ui/Input";
 import { Modal } from "../../components/ui/Modal";
 import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
+import { useToast } from "../../context/ToastContext";
 
 const emptyForm = {
   name: "",
@@ -27,6 +28,7 @@ function Suppliers() {
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState("");
+  const { toast } = useToast();
 
   useEffect(() => {
     loadSuppliers();
@@ -72,31 +74,38 @@ function Suppliers() {
     setIsModalOpen(false);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    try {
-      if (editingId) {
-        await updateSupplier(editingId, form);
-      } else {
-        await createSupplier(form);
-      }
-      handleCancel();
-      loadSuppliers();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to save supplier");
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  try {
+    if (editingId) {
+      await updateSupplier(editingId, form);
+      toast.success("Supplier updated");
+    } else {
+      await createSupplier(form);
+      toast.success("Supplier created");
     }
-  };
+    handleCancel();
+    loadSuppliers();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to save supplier";
+    setError(message);
+    toast.error(message);
+  }
+};
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this supplier?")) return;
-    try {
-      await deleteSupplier(id);
-      loadSuppliers();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete supplier");
-    }
-  };
+const handleDelete = async (id) => {
+  if (!window.confirm("Delete this supplier?")) return;
+  try {
+    await deleteSupplier(id);
+    toast.success("Supplier deleted");
+    loadSuppliers();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to delete supplier";
+    setError(message);
+    toast.error(message);
+  }
+};
 
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6">

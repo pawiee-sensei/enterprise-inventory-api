@@ -13,6 +13,7 @@ import { Modal } from "../../components/ui/Modal";
 import { Switch } from "../../components/ui/Switch";
 import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
 import { Pagination } from "../../components/ui/Pagination";
+import { useToast } from "../../context/ToastContext";
 
 
 
@@ -39,6 +40,7 @@ function Products() {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
+    const { toast } = useToast();
 
     const [adjustingProduct, setAdjustingProduct] = useState(null);
     const [adjustForm, setAdjustForm] = useState({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
@@ -98,15 +100,19 @@ const handleSubmit = async (e) => {
     const payload = { ...form, is_active: 1 };
     if (editingId) {
       await updateProduct(editingId, payload);
+      toast.success("Product updated");
       setEditingId(null);
     } else {
       await createProduct(payload);
+      toast.success("Product created");
     }
     setForm(emptyForm);
     setIsModalOpen(false);
     loadAll();
   } catch (err) {
-    setError(err.response?.data?.message || "Failed to save product");
+    const message = err.response?.data?.message || "Failed to save product";
+    setError(message);
+    toast.error(message);
   }
 };
 
@@ -138,15 +144,18 @@ const handleCancelEdit = () => {
   setIsModalOpen(false);
 };
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Delete this product?")) return;
-    try {
-      await deleteProduct(id);
-      loadAll();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete product");
-    }
-  };
+const handleDelete = async (id) => {
+  if (!window.confirm("Delete this product?")) return;
+  try {
+    await deleteProduct(id);
+    toast.success("Product deleted");
+    loadAll();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to delete product";
+    setError(message);
+    toast.error(message);
+  }
+};
 
   const handleAdjustClick = (prod) => {
     setAdjustingProduct(prod);
@@ -157,22 +166,25 @@ const handleCancelEdit = () => {
     setAdjustForm({ ...adjustForm, [e.target.name]: e.target.value });
   };
 
-  const handleAdjustSubmit = async (e) => {
-    e.preventDefault();
-    setError("");
-    try {
-      await createInventoryAdjustment({
-        product_id: adjustingProduct.id,
-        type: adjustForm.type,
-        quantity: Number(adjustForm.quantity),
-        reason: adjustForm.reason,
-      });
-      setAdjustingProduct(null);
-      loadAll();
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to record adjustment");
-    }
-  };
+const handleAdjustSubmit = async (e) => {
+  e.preventDefault();
+  setError("");
+  try {
+    await createInventoryAdjustment({
+      product_id: adjustingProduct.id,
+      type: adjustForm.type,
+      quantity: Number(adjustForm.quantity),
+      reason: adjustForm.reason,
+    });
+    toast.success("Stock adjusted");
+    setAdjustingProduct(null);
+    loadAll();
+  } catch (err) {
+    const message = err.response?.data?.message || "Failed to record adjustment";
+    setError(message);
+    toast.error(message);
+  }
+};
 
   return (
     <div className="mx-auto flex max-w-7xl flex-col gap-6">
