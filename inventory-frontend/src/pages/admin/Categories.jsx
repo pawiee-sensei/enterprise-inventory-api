@@ -7,6 +7,7 @@ import { Input } from "../../components/ui/Input";
 import { Modal } from "../../components/ui/Modal";
 import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
 import { useToast } from "../../context/ToastContext";
+import { SkeletonTable } from "../../components/ui/Skeleton";
 
 function Categories() {
   const [categories, setCategories] = useState([]);
@@ -111,7 +112,12 @@ const handleDelete = async (id) => {
             <Th align="right">Actions</Th>
           </TableHead>
           <TableBody>
-            {categories.map((cat) => (
+
+            {loading ? (
+              <SkeletonTable rows={4} columns={4} />
+            ) : (
+
+            categories.map((cat) => (
               <Tr key={cat.id}>
                 <Td className="font-mono tabular-nums text-text-secondary">#{cat.id}</Td>
                 <Td className="font-medium">{cat.name}</Td>
@@ -123,7 +129,8 @@ const handleDelete = async (id) => {
                   </ActionMenu>
                 </Td>
               </Tr>
-            ))}
+            ))
+            )}
           </TableBody>
         </Table>
       )}

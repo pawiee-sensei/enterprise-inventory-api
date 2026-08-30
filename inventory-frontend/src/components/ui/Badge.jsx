@@ -1,4 +1,4 @@
-export function Badge({ children, tone = "neutral", className = "" }) {
+export function Badge({ children, tone = "neutral" }) {
   const tones = {
     neutral: "bg-surface text-text-secondary",
     success: "bg-success-bg text-success",
@@ -8,7 +8,7 @@ export function Badge({ children, tone = "neutral", className = "" }) {
 
   return (
     <span
-      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${tones[tone]} ${className}`}
+      className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium ${tones[tone]}`}
     >
       {children}
     </span>
