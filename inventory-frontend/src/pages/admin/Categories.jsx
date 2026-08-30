@@ -8,6 +8,7 @@ import { Modal } from "../../components/ui/Modal";
 import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
 import { useToast } from "../../context/ToastContext";
 import { SkeletonTable } from "../../components/ui/Skeleton";
+import { useConfirm } from "../../context/ConfirmContext";
 
 function Categories() {
   const [categories, setCategories] = useState([]);
@@ -17,6 +18,7 @@ function Categories() {
   const [editingId, setEditingId] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     loadCategories();
@@ -24,7 +26,7 @@ function Categories() {
 
   const loadCategories = async () => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // TEMPORARY — remove after testing
+    
     try {
       const data = await getAllCategories();
       setCategories(data.data);
@@ -78,7 +80,9 @@ const handleSubmit = async (e) => {
 };
 
 const handleDelete = async (id) => {
-  if (!window.confirm("Delete this category?")) return;
+  const ok = await confirm("Delete this category?");
+  if (!ok) return;
+
   try {
     await deleteCategory(id);
     toast.success("Category deleted");
@@ -110,9 +114,11 @@ const handleDelete = async (id) => {
     <Th align="right">Actions</Th>
   </TableHead>
   <TableBody>
+
     {loading ? (
       <SkeletonTable rows={4} columns={4} />
     ) : (
+
       categories.map((cat) => (
         <Tr key={cat.id}>
           <Td className="font-mono tabular-nums text-text-secondary">#{cat.id}</Td>

@@ -57,7 +57,7 @@ useEffect(() => {
 
   const loadAll = async () => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // TEMPORARY — remove after testing
+    
     try {
       const [purchasesRes, suppliersRes, productsRes] = await Promise.all([
         getAllPurchases({ page, limit: 10 }),

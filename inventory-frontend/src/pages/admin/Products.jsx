@@ -15,6 +15,7 @@ import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
 import { Pagination } from "../../components/ui/Pagination";
 import { useToast } from "../../context/ToastContext";
 import { SkeletonTable } from "../../components/ui/Skeleton";
+import { useConfirm } from "../../context/ConfirmContext";
 
 
 
@@ -42,6 +43,7 @@ function Products() {
     const [page, setPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
     const { toast } = useToast();
+    const confirm = useConfirm();
 
     const [adjustingProduct, setAdjustingProduct] = useState(null);
     const [adjustForm, setAdjustForm] = useState({ type: "ADJUSTMENT_IN", quantity: "", reason: "" });
@@ -54,7 +56,7 @@ function Products() {
 
     const loadAll = async () => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000)); // TEMPORARY — remove after testing
+    
     try {
         const [productsRes, categoriesRes, suppliersRes] = await Promise.all([
         getAllProducts({ page, limit: 10 }),
@@ -147,7 +149,8 @@ const handleCancelEdit = () => {
 };
 
 const handleDelete = async (id) => {
-  if (!window.confirm("Delete this product?")) return;
+  const ok = await confirm("Delete this supplier?");
+  if (!ok) return;
   try {
     await deleteProduct(id);
     toast.success("Product deleted");

@@ -13,6 +13,7 @@ import { Modal } from "../../components/ui/Modal";
 import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
 import { useToast } from "../../context/ToastContext";
 import { SkeletonTable } from "../../components/ui/Skeleton";
+import { useConfirm } from "../../context/ConfirmContext";
 
 const emptyForm = {
   name: "",
@@ -30,6 +31,7 @@ function Suppliers() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [error, setError] = useState("");
   const { toast } = useToast();
+  const confirm = useConfirm();
 
   useEffect(() => {
     loadSuppliers();
@@ -97,7 +99,8 @@ const handleSubmit = async (e) => {
 };
 
 const handleDelete = async (id) => {
-  if (!window.confirm("Delete this supplier?")) return;
+  const ok = await confirm("Delete this supplier?");
+  if (!ok) return;
   try {
     await deleteSupplier(id);
     toast.success("Supplier deleted");
