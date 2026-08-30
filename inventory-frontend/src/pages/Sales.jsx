@@ -36,6 +36,8 @@ import {
 
 import { Pagination } from "../components/ui/Pagination";
 import { useToast } from "../context/ToastContext";
+import { SkeletonTable } from "../components/ui/Skeleton";
+
 
 function Trend({ value }) {
   const isUp = value >= 0;
@@ -73,6 +75,7 @@ function Sales() {
 
 const loadAll = async () => {
   setLoading(true);
+
   try {
     const [salesRes, allSalesRes, productsRes, topRes] = await Promise.all([
       getAllSales({ page, limit: 10 }),
@@ -309,35 +312,37 @@ const handleSubmitReturn = async (e) => {
         </Card>
       </section>
 
-      {/* Sales history */}
-      {loading ? (
-        <p className="text-sm text-text-secondary">Loading...</p>
-      ) : (
-        <Table>
-          <TableHead>
-            <Th>ID</Th>
-            <Th>Created By</Th>
-            <Th>Date</Th>
-            <Th align="right">Total</Th>
-            <Th>Status</Th>
-            <Th align="right">Actions</Th>
-          </TableHead>
-          <TableBody>
-            {sales.map((s) => (
-              <Tr key={s.id}>
-                <Td className="font-mono tabular-nums text-text-secondary">#{s.id}</Td>
-                <Td>{s.created_by}</Td>
-                <Td className="text-text-secondary">{formatDate(s.sale_date)}</Td>
-                <Td align="right" className="font-mono tabular-nums">{s.total_amount}</Td>
-                <Td><Badge tone="success">{s.status}</Badge></Td>
-                <Td align="right">
-                  <Button variant="secondary" onClick={() => handleView(s.id)}>View</Button>
-                </Td>
-              </Tr>
-            ))}
-          </TableBody>
-        </Table>
-      )}
+{/* Sales history */}
+<Table>
+  <TableHead>
+    <Th>ID</Th>
+    <Th>Created By</Th>
+    <Th>Date</Th>
+    <Th align="right">Total</Th>
+    <Th>Status</Th>
+    <Th align="right">Actions</Th>
+  </TableHead>
+  <TableBody>
+    {loading ? (
+      <SkeletonTable rows={5} columns={6} />
+    ) : (
+      sales.map((s) => (
+        <Tr key={s.id}>
+          <Td className="font-mono tabular-nums text-text-secondary">#{s.id}</Td>
+          <Td>{s.created_by}</Td>
+          <Td className="text-text-secondary">{formatDate(s.sale_date)}</Td>
+          <Td align="right" className="font-mono tabular-nums">{s.total_amount}</Td>
+          <Td><Badge tone="success">{s.status}</Badge></Td>
+          <Td align="right">
+            <Button variant="secondary" onClick={() => handleView(s.id)}>View</Button>
+          </Td>
+        </Tr>
+      ))
+    )}
+  </TableBody>
+</Table>
+
+<Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {/* New Sale modal */}
       <Modal

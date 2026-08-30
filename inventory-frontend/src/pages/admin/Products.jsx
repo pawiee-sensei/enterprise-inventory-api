@@ -14,6 +14,7 @@ import { Switch } from "../../components/ui/Switch";
 import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
 import { Pagination } from "../../components/ui/Pagination";
 import { useToast } from "../../context/ToastContext";
+import { SkeletonTable } from "../../components/ui/Skeleton";
 
 
 
@@ -53,6 +54,7 @@ function Products() {
 
     const loadAll = async () => {
     setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // TEMPORARY — remove after testing
     try {
         const [productsRes, categoriesRes, suppliersRes] = await Promise.all([
         getAllProducts({ page, limit: 10 }),
@@ -273,9 +275,7 @@ const handleAdjustSubmit = async (e) => {
         <p className="rounded-md bg-danger-bg px-4 py-2 text-sm text-danger">{error}</p>
       )}
 
-      {loading ? (
-        <p className="text-sm text-text-secondary">Loading...</p>
-      ) : (
+
         <Table>
           <TableHead>
             <Th>SKU</Th>
@@ -290,7 +290,12 @@ const handleAdjustSubmit = async (e) => {
             <Th align="right">Actions</Th>
           </TableHead>
           <TableBody>
-  {products.map((prod) => (
+
+      {loading ? (
+        <SkeletonTable rows={5} columns={10} />
+      ) : (
+
+      products.map((prod) => (
     <Tr key={prod.id}>
       <Td className="font-mono tabular-nums text-text-secondary">{prod.sku}</Td>
       <Td className="font-medium">{prod.name}</Td>
@@ -322,10 +327,11 @@ const handleAdjustSubmit = async (e) => {
         </ActionMenu>
         </Td>
     </Tr>
-  ))}
+  ))
+      )}
 </TableBody>
         </Table>
-      )}
+
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 

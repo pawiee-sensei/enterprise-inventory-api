@@ -15,6 +15,8 @@ import { Input, Select } from "../components/ui/Input";
 import { Badge } from "../components/ui/Badge";
 import { Modal } from "../components/ui/Modal";
 import { useToast } from "../context/ToastContext";
+import { SkeletonTable } from "../components/ui/Skeleton";
+
 
 const reasonCategories = ["Damaged", "Lost / Theft", "Miscount", "Expired", "Other"];
 
@@ -167,11 +169,7 @@ const handleReject = async (id) => {
         </Select>
       </div>
 
-      {loading ? (
-        <p className="text-sm text-text-secondary">Loading...</p>
-      ) : requests.length === 0 ? (
-        <p className="text-sm text-text-secondary">No requests found.</p>
-      ) : (
+
         <Table>
           <TableHead>
             <Th>Product</Th>
@@ -184,7 +182,19 @@ const handleReject = async (id) => {
             {isAdmin && <Th align="right">Actions</Th>}
           </TableHead>
           <TableBody>
-            {requests.map((r) => (
+            
+            
+{loading ? (
+  <SkeletonTable rows={4} columns={isAdmin ? 8 : 7} />
+) : requests.length === 0 ? (
+  <tr>
+    <td colSpan={isAdmin ? 8 : 7} className="px-5 py-8 text-center text-sm text-text-secondary">
+      No requests found.
+    </td>
+  </tr>
+) : (
+
+      requests.map((r) => (
               <Tr key={r.id}>
                 <Td className="font-medium">{r.product}</Td>
                 <Td>
@@ -212,10 +222,11 @@ const handleReject = async (id) => {
                   </Td>
                 )}
               </Tr>
-            ))}
+            ))
+          )}
           </TableBody>
         </Table>
-      )}
+      
 
       <Modal isOpen={isModalOpen} onClose={resetForm} title="New Stock Request">
         {!selectedProduct ? (

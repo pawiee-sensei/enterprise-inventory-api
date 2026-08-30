@@ -12,6 +12,7 @@ import { Input } from "../../components/ui/Input";
 import { Modal } from "../../components/ui/Modal";
 import { ActionMenu, ActionMenuItem } from "../../components/ui/ActionMenu";
 import { useToast } from "../../context/ToastContext";
+import { SkeletonTable } from "../../components/ui/Skeleton";
 
 const emptyForm = {
   name: "",
@@ -36,6 +37,7 @@ function Suppliers() {
 
   const loadSuppliers = async () => {
     setLoading(true);
+    
     try {
       const data = await getAllSuppliers();
       setSuppliers(data.data);
@@ -119,9 +121,7 @@ const handleDelete = async (id) => {
         <p className="rounded-md bg-danger-bg px-4 py-2 text-sm text-danger">{error}</p>
       )}
 
-      {loading ? (
-        <p className="text-sm text-text-secondary">Loading...</p>
-      ) : (
+
         <Table>
           <TableHead>
             <Th>ID</Th>
@@ -132,7 +132,12 @@ const handleDelete = async (id) => {
             <Th align="right">Actions</Th>
           </TableHead>
           <TableBody>
-            {suppliers.map((sup) => (
+
+      {loading ? (
+        <SkeletonTable rows={4} columns={6} />
+      ) : (
+
+      suppliers.map((sup) => (
               <Tr key={sup.id}>
                 <Td className="font-mono tabular-nums text-text-secondary">#{sup.id}</Td>
                 <Td className="font-medium">{sup.name}</Td>
@@ -146,10 +151,11 @@ const handleDelete = async (id) => {
                   </ActionMenu>
                 </Td>
               </Tr>
-            ))}
+            ))
+          )}
           </TableBody>
         </Table>
-      )}
+
 
       <Modal
         isOpen={isModalOpen}

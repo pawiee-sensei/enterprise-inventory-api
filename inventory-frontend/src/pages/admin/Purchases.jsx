@@ -18,6 +18,8 @@ import { Modal } from "../../components/ui/Modal";
 import { formatDate } from "../../utils/formatDate";
 import { Pagination } from "../../components/ui/Pagination";
 import { useToast } from "../../context/ToastContext";
+import { SkeletonTable } from "../../components/ui/Skeleton";
+
 
 function Purchases() {
   const [purchases, setPurchases] = useState([]);
@@ -55,6 +57,7 @@ useEffect(() => {
 
   const loadAll = async () => {
     setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // TEMPORARY — remove after testing
     try {
       const [purchasesRes, suppliersRes, productsRes] = await Promise.all([
         getAllPurchases({ page, limit: 10 }),
@@ -190,9 +193,7 @@ const handleSubmitReturn = async (e) => {
         <p className="rounded-md bg-danger-bg px-4 py-2 text-sm text-danger">{error}</p>
       )}
 
-      {loading ? (
-        <p className="text-sm text-text-secondary">Loading...</p>
-      ) : (
+
         <Table>
           <TableHead>
             <Th>ID</Th>
@@ -204,7 +205,12 @@ const handleSubmitReturn = async (e) => {
             <Th align="right">Actions</Th>
           </TableHead>
           <TableBody>
-            {purchases.map((p) => (
+
+      {loading ? (
+        <SkeletonTable rows={5} columns={10} />
+      ) : (
+
+      purchases.map((p) => (
               <Tr key={p.id}>
                 <Td className="font-mono tabular-nums text-text-secondary">#{p.id}</Td>
                 <Td className="font-medium">{p.supplier}</Td>
@@ -216,10 +222,11 @@ const handleSubmitReturn = async (e) => {
                   <Button variant="secondary" onClick={() => handleView(p.id)}>View</Button>
                 </Td>
               </Tr>
-            ))}
+            ))
+      )}
           </TableBody>
         </Table>
-      )}
+  
 
       <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 

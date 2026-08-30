@@ -24,6 +24,7 @@ function Categories() {
 
   const loadCategories = async () => {
     setLoading(true);
+    await new Promise((resolve) => setTimeout(resolve, 2000)); // TEMPORARY — remove after testing
     try {
       const data = await getAllCategories();
       setCategories(data.data);
@@ -101,39 +102,33 @@ const handleDelete = async (id) => {
         <p className="rounded-md bg-danger-bg px-4 py-2 text-sm text-danger">{error}</p>
       )}
 
-      {loading ? (
-        <p className="text-sm text-text-secondary">Loading...</p>
-      ) : (
-        <Table>
-          <TableHead>
-            <Th>ID</Th>
-            <Th>Name</Th>
-            <Th>Description</Th>
-            <Th align="right">Actions</Th>
-          </TableHead>
-          <TableBody>
-
-            {loading ? (
-              <SkeletonTable rows={4} columns={4} />
-            ) : (
-
-            categories.map((cat) => (
-              <Tr key={cat.id}>
-                <Td className="font-mono tabular-nums text-text-secondary">#{cat.id}</Td>
-                <Td className="font-medium">{cat.name}</Td>
-                <Td className="text-text-secondary">{cat.description || "—"}</Td>
-                <Td align="right">
-                  <ActionMenu>
-                    <ActionMenuItem onClick={() => handleEditClick(cat)}>Edit</ActionMenuItem>
-                    <ActionMenuItem onClick={() => handleDelete(cat.id)} danger>Delete</ActionMenuItem>
-                  </ActionMenu>
-                </Td>
-              </Tr>
-            ))
-            )}
-          </TableBody>
-        </Table>
-      )}
+<Table>
+  <TableHead>
+    <Th>ID</Th>
+    <Th>Name</Th>
+    <Th>Description</Th>
+    <Th align="right">Actions</Th>
+  </TableHead>
+  <TableBody>
+    {loading ? (
+      <SkeletonTable rows={4} columns={4} />
+    ) : (
+      categories.map((cat) => (
+        <Tr key={cat.id}>
+          <Td className="font-mono tabular-nums text-text-secondary">#{cat.id}</Td>
+          <Td className="font-medium">{cat.name}</Td>
+          <Td className="text-text-secondary">{cat.description || "—"}</Td>
+          <Td align="right">
+            <ActionMenu>
+              <ActionMenuItem onClick={() => handleEditClick(cat)}>Edit</ActionMenuItem>
+              <ActionMenuItem onClick={() => handleDelete(cat.id)} danger>Delete</ActionMenuItem>
+            </ActionMenu>
+          </Td>
+        </Tr>
+      ))
+    )}
+  </TableBody>
+</Table>
 
       <Modal
         isOpen={isModalOpen}
