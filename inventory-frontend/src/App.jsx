@@ -22,6 +22,7 @@ import StockRequests from "./pages/StockRequests";
 
 // Staff Product Page
 import ProductsView from "./pages/ProductsView";
+import NotFound from "./pages/NotFound";
 
 function App() {
   return (
@@ -123,6 +124,7 @@ function App() {
         />
 
         </Route>
+                <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );
